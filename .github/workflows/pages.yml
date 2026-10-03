@@ -25,7 +25,8 @@ jobs:
         env:
           SITE_BASE: /exoskins-shop/
       # Preview only: keep search engines out until the real launch.
-      - run: printf 'User-agent: *\nDisallow: /\n' > dist/robots.txt
+      - run: |
+          printf 'User-agent: *\nDisallow: /\n' > dist/robots.txt
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
