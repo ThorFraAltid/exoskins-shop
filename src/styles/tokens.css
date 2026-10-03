@@ -1,0 +1,110 @@
+/*
+ * Design tokens, read from the Figma Style frame (node 901:1109) and the
+ * Components page (403:244). Components use these variables only.
+ *
+ * Breakpoints (CSS cannot read variables in media queries, so they are
+ * written out as numbers in every @media rule):
+ *   desktop   >= 1240px  as designed (Figma frames are 1440 wide, 1240 column)
+ *   1024      1024px - 1239px
+ *   768       768px  - 1023px
+ *   mobile    <= 767px (reference width 390px)
+ */
+:root {
+  /* Colours (Style frame: Green, Dark, Grey, Black, plus white) */
+  --c-green: #b9ff66;
+  --c-dark: #191a23;
+  --c-grey: #f3f3f3;
+  --c-black: #000000;
+  --c-white: #ffffff;
+  /* Figma "Arrow left" disabled state: white at 30 % */
+  --c-white-30: rgb(255 255 255 / 0.3);
+
+  /* Font */
+  --font: 'Space Grotesk', sans-serif;
+  --fw-regular: 400;
+  --fw-medium: 500;
+
+  /*
+   * Type scale. Desktop values apply from 1240px, mobile values up to 767px,
+   * clamp() interpolates linearly between 768px and 1239px.
+   * Figma line height "100" = auto = font ascent + descent = 1.275 for
+   * Space Grotesk (written out so boxes match Figma, e.g. 40px -> 51px).
+   *              desktop  mobile
+   *   h1 Medium  60       43
+   *   h2 Medium  40       36
+   *   h3 Medium  30       26
+   *   h4 Medium  20       18
+   *   p  Regular 18       16 (line height 24px on mobile)
+   */
+  --fs-h1: 60px;
+  --fs-h2: 40px;
+  --fs-h3: 30px;
+  --fs-h4: 20px;
+  --fs-p: 18px;
+  --lh-auto: 1.275;
+  --lh-heading: var(--lh-auto);
+  --lh-p: var(--lh-auto);
+
+  /* Button and link label (Button 403:245, Link 403:283): Regular 20 / 28 */
+  --fs-label: 20px;
+  --lh-label: 28px;
+
+  /* Radii */
+  --r-card: 45px; /* cards, testimonials block, footer top corners */
+  --r-button: 14px; /* buttons, email field */
+  --r-label: 7px; /* heading label pills */
+  --r-pill: 300px; /* Item page nav bar */
+
+  /* Borders and the green bottom edge of cards (shadow 0 5px 0 0 #B9FF66) */
+  --border: 1px solid var(--c-green);
+  --edge: 0 5px 0 0 var(--c-green);
+  /* Hover state (PLAN.md "States"): edge grows by 4px */
+  --edge-hover: 0 9px 0 0 var(--c-green);
+  --lift: -4px;
+
+  /* Layout */
+  --column-max: 1240px;
+  --gutter: 32px;
+  --column: min(var(--column-max), 100% - 2 * var(--gutter));
+
+  /* Component geometry from Figma */
+  --card-w: 405px;
+  --card-h: 303px;
+  --card-pad-y: 50px;
+  --card-pad-l: 50px;
+  --card-pad-r: 10px;
+  --button-pad: 20px 35px;
+  --label-pad-x: 7px;
+
+  /* Motion */
+  --dur: 200ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@media (max-width: 1239px) {
+  :root {
+    --fs-h1: clamp(43px, calc(43px + 17 * (100vw - 768px) / 472), 60px);
+    --fs-h2: clamp(36px, calc(36px + 4 * (100vw - 768px) / 472), 40px);
+    --fs-h3: clamp(26px, calc(26px + 4 * (100vw - 768px) / 472), 30px);
+    --fs-h4: clamp(18px, calc(18px + 2 * (100vw - 768px) / 472), 20px);
+    --fs-p: clamp(16px, calc(16px + 2 * (100vw - 768px) / 472), 18px);
+  }
+}
+
+@media (max-width: 1023px) {
+  :root {
+    --gutter: 24px;
+  }
+}
+
+@media (max-width: 767px) {
+  :root {
+    --fs-h1: 43px;
+    --fs-h2: 36px;
+    --fs-h3: 26px;
+    --fs-h4: 18px;
+    --fs-p: 16px;
+    --lh-p: 24px;
+    --gutter: 16px;
+  }
+}

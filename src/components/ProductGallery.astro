@@ -1,0 +1,395 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import type { ImageMetadata } from 'astro';
+import { Picture } from 'astro:assets';
+import { url } from '../lib/url';
+
+/**
+ * Product page gallery, Figma Item frame: thumbnails 5205:946, 7037:844,
+ * 7094:827, 7087:1296 (143x136) and main view 5205:967 (637x609). Every box is
+ * a black card with a 1px green border, radius 45 and the 5px green bottom edge.
+ *
+ * Props
+ * - skin:   CollectionEntry<'skins'>   media come from `skin.data.gallery`
+ * - class?: string                     extra class on the root
+ *
+ * Media model: the video (optional) first, then the images. One thumbnail per
+ * media item; a video's thumbnail is its poster, an image's thumbnail is its
+ * `thumb` still when set, else the image itself. Thumbnails are <button>s:
+ * click / Enter / Space shows the item in the main view, the active one has
+ * aria-current="true" (others 60% opacity), arrow keys and Home/End move focus
+ * between thumbnails. Videos are muted, looped, preload="none" and only play
+ * (by script) while the main view is in the viewport and motion is allowed;
+ * switching away pauses them. Hooks: data-gallery-main, data-gallery-thumb.
+ * Main view images load eagerly (hidden ones with low priority) so a thumbnail
+ * swap shows a loaded image at once.
+ *
+ * Image placement: Figma crops each image into its box by hand. A placement is
+ * the image box in percent of the outer box (stretched, as in Figma) or 'cover'.
+ * The defaults are Figma's own placements for the 2132x1984 mouse renders:
+ * main view = how 5205:967 places 1.png, thumbnail = how 7037:844 places 2.png.
+ */
+interface Props {
+  skin: CollectionEntry<'skins'>;
+  class?: string;
+}
+
+type Placement = 'cover' | { x: number; y: number; w: number; h: number };
+
+/** Figma 5205:967: 1.png at 70.05, 37.96, 492.95 x 494.9 in the 637x609 box. */
+const DEFAULT_MAIN: Placement = { x: 10.997, y: 6.232, w: 77.385, h: 81.264 };
+/** Figma 7037:844: 2.png at 4.27, -4.36, 136.61 x 136.85 in the 143x136 box. */
+const DEFAULT_THUMB: Placement = { x: 2.985, y: -3.206, w: 95.53, h: 100.625 };
+const MAIN_BOX = { w: 637, h: 609 };
+const THUMB_BOX = { w: 143, h: 136 };
+const THUMB_FIGMA = ['5205:946', '7037:844', '7094:827', '7087:1296'];
+
+const { skin, class: className } = Astro.props;
+const { name, gallery } = skin.data;
+const alt = `${skin.id} ${name}`;
+
+type Media =
+  | { kind: 'video'; src: string; poster: string; width: number; height: number }
+  | {
+      kind: 'image';
+      src: ImageMetadata;
+      thumb: ImageMetadata;
+      main: Placement;
+      thumbPlacement: Placement;
+    };
+
+const media: Media[] = [
+  ...(gallery.video ? [{ kind: 'video' as const, ...gallery.video }] : []),
+  ...gallery.images.map((img) => ({
+    kind: 'image' as const,
+    src: img.src,
+    thumb: img.thumb ?? img.src,
+    main: img.main ?? DEFAULT_MAIN,
+    thumbPlacement: img.thumbPlacement ?? DEFAULT_THUMB,
+  })),
+];
+if (media.length === 0) throw new Error(`ProductGallery: skin ${skin.id} has no media`);
+
+/** Inline position for a placement box; 'cover' is handled by a class. */
+const placementStyle = (p: Placement) =>
+  p === 'cover' ? undefined : `left:${p.x}%;top:${p.y}%;width:${p.w}%;height:${p.h}%`;
+
+/** Rendered width of an image in a box of `box.w` px (the desktop size). */
+function renderedWidth(p: Placement, img: ImageMetadata, box: { w: number; h: number }) {
+  if (p !== 'cover') return (box.w * p.w) / 100;
+  return Math.max(box.w, (box.h * img.width) / img.height);
+}
+
+/** srcset widths (1x and 2x of the desktop size, capped at the source) and sizes. */
+function responsive(p: Placement, img: ImageMetadata, box: { w: number; h: number }, vw: string[]) {
+  const w = renderedWidth(p, img, box);
+  const k = w / box.w;
+  const widths = [...new Set([Math.round(w / 2), Math.round(w), Math.round(w * 2)])]
+    .map((n) => Math.min(n, img.width))
+    .filter((n, i, all) => all.indexOf(n) === i);
+  const [mobile, small, medium] = vw;
+  const sizes = [
+    `(max-width: 767px) calc(${k.toFixed(4)} * ${mobile})`,
+    `(max-width: 1023px) calc(${k.toFixed(4)} * ${small})`,
+    `(max-width: 1239px) calc(${k.toFixed(4)} * ${medium})`,
+    `${Math.round(w)}px`,
+  ].join(', ');
+  return { widths, sizes };
+}
+
+/** Approximate main view / thumbnail widths per layout (PLAN.md "Responsive spec"). */
+const MAIN_VW = ['(100vw - 32px)', '76vw', '53vw'];
+const THUMB_VW = ['22vw', '16vw', '11vw'];
+
+const panelId = (i: number) => `gallery-panel-${i}`;
+const thumbLabel = (m: Media, i: number) =>
+  `Show ${m.kind === 'video' ? 'video' : 'image'} ${i + 1} of ${media.length}: ${alt}`;
+---
+
+<div class:list={['gallery', className]} data-gallery>
+  <div class="gallery__main" data-figma="5205:967" data-gallery-main>
+    {
+      media.map((m, i) => (
+        <div class="gallery__panel" id={panelId(i)} hidden={i !== 0} data-gallery-panel>
+          {m.kind === 'video' ? (
+            <video
+              class="gallery__video"
+              muted
+              loop
+              playsinline
+              preload="none"
+              poster={url(m.poster)}
+              width={m.width}
+              height={m.height}
+              aria-label={alt}
+            >
+              <source src={url(m.src)} type="video/mp4" />
+            </video>
+          ) : (
+            <div class:list={['gallery__frame', { 'gallery__frame--fit': m.main !== 'cover' }]}>
+              <Picture
+                src={m.src}
+                alt={alt}
+                formats={['avif', 'webp']}
+                fallbackFormat="webp"
+                {...responsive(m.main, m.src, MAIN_BOX, MAIN_VW)}
+                class:list={['gallery__img', { 'gallery__img--cover': m.main === 'cover' }]}
+                style={placementStyle(m.main)}
+                loading="eager"
+                fetchpriority={i === 0 ? 'high' : 'low'}
+                decoding="async"
+              />
+            </div>
+          )}
+        </div>
+      ))
+    }
+  </div>
+
+  <ul class="gallery__thumbs" role="list" aria-label={`${alt} media`} data-gallery-thumbs>
+    {
+      media.map((m, i) => (
+        <li class="gallery__thumb-item">
+          <button
+            class="gallery__thumb"
+            type="button"
+            aria-label={thumbLabel(m, i)}
+            aria-controls={panelId(i)}
+            aria-current={i === 0 ? 'true' : undefined}
+            tabindex={i === 0 ? 0 : -1}
+            data-figma={THUMB_FIGMA[i]}
+            data-gallery-thumb
+          >
+            <span class="gallery__frame">
+              {m.kind === 'video' ? (
+                <img
+                  class="gallery__img gallery__img--cover"
+                  src={url(m.poster)}
+                  alt=""
+                  width={m.width}
+                  height={m.height}
+                  decoding="async"
+                />
+              ) : (
+                <Picture
+                  src={m.thumb}
+                  alt=""
+                  formats={['avif', 'webp']}
+                fallbackFormat="webp"
+                  {...responsive(m.thumbPlacement, m.thumb, THUMB_BOX, THUMB_VW)}
+                  class:list={[
+                    'gallery__img',
+                    { 'gallery__img--cover': m.thumbPlacement === 'cover' },
+                  ]}
+                  style={placementStyle(m.thumbPlacement)}
+                  decoding="async"
+                />
+              )}
+            </span>
+          </button>
+        </li>
+      ))
+    }
+  </ul>
+</div>
+
+<style>
+  .gallery {
+    display: grid;
+    grid-template-columns: 143px 637px;
+    grid-template-areas: 'thumbs main';
+    column-gap: 40px;
+    align-items: start;
+  }
+
+  /* Shared card surface (Figma "Card": black, 1px green border, radius 45, green edge). */
+  .gallery__main,
+  .gallery__thumb {
+    position: relative;
+    display: block;
+    width: 100%;
+    overflow: clip;
+    background: var(--c-black);
+    border: var(--border);
+    box-shadow: var(--edge);
+  }
+
+  .gallery__main {
+    grid-area: main;
+    aspect-ratio: 637 / 609;
+    border-radius: var(--r-card);
+  }
+  .gallery__panel {
+    position: absolute;
+    inset: -1px;
+  }
+  .gallery__panel[hidden] {
+    display: none;
+  }
+  /* Product videos start on an off-white background and turn full bleed:
+     cover fills the box edge to edge, the card radius clips it. */
+  .gallery__video {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+  }
+
+  /* The placement box: the outer card box (border included), in the Figma
+     aspect ratio. In the square mobile main view it is centred vertically, so
+     placed images keep their Figma proportions. */
+  .gallery__frame {
+    position: absolute;
+    inset: 0;
+  }
+  .gallery__thumb .gallery__frame {
+    inset: -1px;
+  }
+  .gallery__main .gallery__frame--fit {
+    inset: auto 0;
+    top: 50%;
+    aspect-ratio: 637 / 609;
+    translate: 0 -50%;
+  }
+  .gallery__img,
+  .gallery__frame :global(img) {
+    position: absolute;
+    max-width: none;
+  }
+  .gallery__frame :global(.gallery__img--cover) {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .gallery__thumbs {
+    grid-area: thumbs;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  /* Figma thumbnail tops: 199, 351, 518, 672 (gaps 16, 31, 18 with 136 tall boxes). */
+  @media (min-width: 1240px) {
+    .gallery__thumb-item:nth-child(3) {
+      margin-top: 15px;
+    }
+    .gallery__thumb-item:nth-child(4) {
+      margin-top: 2px;
+    }
+  }
+  .gallery__thumb {
+    aspect-ratio: 143 / 136;
+    /* 45px at 143x136, scaled down with the thumbnail on small screens. */
+    border-radius: min(45px, 31.469%) / min(45px, 33.088%);
+  }
+  /* Inactive thumbnails: media at 60% (PLAN.md "States"); the card frame stays. */
+  .gallery__thumb .gallery__frame {
+    opacity: 0.6;
+    transition: opacity var(--dur) var(--ease);
+  }
+  .gallery__thumb[aria-current='true'] .gallery__frame {
+    opacity: 1;
+  }
+
+  @media (max-width: 1239px) {
+    .gallery {
+      grid-template-columns: minmax(0, 143fr) minmax(0, 637fr);
+      column-gap: clamp(16px, 3.2vw, 40px);
+    }
+  }
+  @media (max-width: 767px) {
+    .gallery {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: 'main' 'thumbs';
+      row-gap: 16px;
+    }
+    .gallery__main {
+      aspect-ratio: 1;
+    }
+    .gallery__thumbs {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+  }
+</style>
+
+<script>
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const NEXT = ['ArrowDown', 'ArrowRight'];
+  const PREV = ['ArrowUp', 'ArrowLeft'];
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-gallery]')) {
+    const main = root.querySelector<HTMLElement>('[data-gallery-main]');
+    const list = root.querySelector<HTMLElement>('[data-gallery-thumbs]');
+    const panels = [...root.querySelectorAll<HTMLElement>('[data-gallery-panel]')];
+    const thumbs = [...root.querySelectorAll<HTMLButtonElement>('[data-gallery-thumb]')];
+    if (!main || !list || panels.length === 0 || panels.length !== thumbs.length) {
+      throw new Error('ProductGallery: markup is incomplete');
+    }
+
+    let active = panels.findIndex((p) => !p.hidden);
+    let inView = false;
+    const videoAt = (i: number) => panels[i]!.querySelector('video');
+
+    /** Plays the active video while the main view is visible and motion is allowed. */
+    const syncVideo = () => {
+      const video = videoAt(active);
+      if (!video) return;
+      if (inView && !reduceMotion.matches) {
+        video.play().catch((error: DOMException) => {
+          // A pause() before playback starts rejects play() with AbortError: expected.
+          if (error.name !== 'AbortError') throw error;
+        });
+      } else {
+        video.pause();
+      }
+    };
+
+    const focusThumb = (i: number) => {
+      thumbs.forEach((t, j) => (t.tabIndex = j === i ? 0 : -1));
+      thumbs[i]!.focus();
+    };
+
+    const select = (i: number) => {
+      if (i === active) return;
+      videoAt(active)?.pause();
+      panels[active]!.hidden = true;
+      thumbs[active]!.removeAttribute('aria-current');
+      panels[i]!.hidden = false;
+      thumbs[i]!.setAttribute('aria-current', 'true');
+      thumbs.forEach((t, j) => (t.tabIndex = j === i ? 0 : -1));
+      active = i;
+      syncVideo();
+    };
+
+    thumbs.forEach((thumb, i) => thumb.addEventListener('click', () => select(i)));
+
+    list.addEventListener('keydown', (event) => {
+      const i = thumbs.indexOf(document.activeElement as HTMLButtonElement);
+      if (i < 0) return;
+      const last = thumbs.length - 1;
+      let next: number;
+      if (NEXT.includes(event.key)) next = i === last ? 0 : i + 1;
+      else if (PREV.includes(event.key)) next = i === 0 ? last : i - 1;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = last;
+      else return;
+      event.preventDefault();
+      focusThumb(next);
+    });
+
+    new IntersectionObserver(
+      ([entry]) => {
+        inView = entry!.isIntersecting;
+        syncVideo();
+      },
+      { threshold: 0.25 },
+    ).observe(main);
+    reduceMotion.addEventListener('change', syncVideo);
+  }
+</script>

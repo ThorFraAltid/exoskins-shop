@@ -1,0 +1,193 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { Picture } from 'astro:assets';
+import HeadingLabel from './HeadingLabel.astro';
+import ArrowLink from './ArrowLink.astro';
+import { url } from '../lib/url';
+
+/**
+ * Skin card, 405x303. Figma: Home 901:468 / 5081:793 / 5036:1177 (black),
+ * 5036:733 / 5081:800 / 5081:837 (light); Item 5190:1536 (black), 5190:1550 (light).
+ * The whole card is one link to /skins/<id>/.
+ *
+ * Props
+ * - skin:        CollectionEntry<'skins'>   the skin to show (image, id, name)
+ * - variant:     'black' | 'light'           card surface (#000 or #F3F3F3)
+ * - tagline:     string                       slot tagline; "\n" = line break
+ * - labelPrefix: string                       '/FD' on Home, '/' on Item pages
+ * - figma?:      string                       Figma node id -> data-figma
+ * - loading?:    'lazy' | 'eager'             image loading, default 'lazy'
+ * - class?:      string
+ *
+ * Size: fills its container's width and keeps 405:303. Every inner measure is
+ * expressed in units of card width / 405, so the card scales as one piece and
+ * is pixel-identical to Figma at 405px.
+ * States: hover/focus lifts 4px, green bottom edge grows 5 -> 9px, arrow
+ * circle inverts. No lift with prefers-reduced-motion.
+ */
+interface Props {
+  skin: CollectionEntry<'skins'>;
+  variant: 'black' | 'light';
+  tagline: string;
+  labelPrefix: string;
+  figma?: string;
+  loading?: 'lazy' | 'eager';
+  class?: string;
+}
+
+const { skin, variant, tagline, labelPrefix, figma, loading = 'lazy', class: className } =
+  Astro.props;
+const { card, name } = skin.data;
+const label = `${labelPrefix}${skin.id}`;
+const href = url(`skins/${skin.id}/`);
+---
+
+<a
+  class:list={['skin-card', `skin-card--${variant}`, className]}
+  href={href}
+  data-figma={figma}
+>
+  <div class="skin-card__inner">
+    <div class="skin-card__text">
+      <HeadingLabel lines={label} as="h3" size="h3" tone="green" class="skin-card__label" />
+      <span class="visually-hidden">{name}</span>
+      <p class="skin-card__tagline">{tagline}</p>
+      <ArrowLink variant={variant === 'black' ? 'card-dark' : 'card-light'} label="See more" />
+    </div>
+    <div class="skin-card__ill" aria-hidden="true">
+      <div class="skin-card__mouse">
+        {
+          card.kind === 'image' ? (
+            <Picture
+              src={card.src}
+              alt=""
+              formats={['avif', 'webp']}
+              widths={[210, 420, 630]}
+              width={630}
+              sizes="(max-width: 767px) 52vw, (max-width: 1023px) 26vw, (max-width: 1239px) 16vw, 207px"
+              loading={loading}
+              decoding="async"
+            />
+          ) : (
+            <img
+              src={url(card.src)}
+              alt=""
+              width={card.width}
+              height={card.height}
+              loading={loading}
+              decoding="async"
+            />
+          )
+        }
+      </div>
+    </div>
+  </div>
+</a>
+
+<style>
+  .skin-card {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 405 / 303;
+    container-type: inline-size;
+    overflow: clip;
+    border: var(--border);
+    border-radius: var(--r-card);
+    box-shadow: var(--edge);
+    text-decoration: none;
+    transition:
+      transform var(--dur) var(--ease),
+      box-shadow var(--dur) var(--ease);
+  }
+  .skin-card--black {
+    background: var(--c-black);
+    color: var(--c-grey);
+  }
+  .skin-card--light {
+    background: var(--c-grey);
+    color: var(--c-black);
+  }
+  .skin-card:hover,
+  .skin-card:focus-visible {
+    transform: translateY(var(--lift));
+    box-shadow: var(--edge-hover);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .skin-card:hover,
+    .skin-card:focus-visible {
+      transform: none;
+    }
+  }
+
+  /* 1u = 1px at a 405px wide card (container is the 403px content box). */
+  .skin-card__inner {
+    --u: calc((100cqi + 2px) / 405);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    /* Figma padding 50 / 10 / 50 / 50 measured from the outer edge (stroke inside). */
+    padding: calc(50 * var(--u) - 1px) calc(10 * var(--u) - 1px) calc(50 * var(--u) - 1px)
+      calc(50 * var(--u) - 1px);
+  }
+  .skin-card__text {
+    position: relative;
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: calc(20 * var(--u));
+    width: calc(267 * var(--u));
+    height: calc(203 * var(--u));
+    margin-right: calc(-101 * var(--u));
+  }
+  .skin-card__text :global(.hl) {
+    font-size: calc(30 * var(--u));
+  }
+  .skin-card__text :global(.hl__pill) {
+    padding-inline: calc(7 * var(--u));
+    border-radius: calc(7 * var(--u));
+  }
+  .skin-card__tagline {
+    flex: 1 0 0;
+    min-height: 1px;
+    width: calc(189 * var(--u));
+    font-size: calc(18 * var(--u));
+    line-height: var(--lh-auto);
+    white-space: pre-line;
+  }
+  .skin-card__text :global(.al) {
+    gap: calc(15 * var(--u));
+    font-size: calc(20 * var(--u));
+    line-height: calc(28 * var(--u));
+  }
+  .skin-card__text :global(.al__icon) {
+    width: calc(41 * var(--u));
+    height: calc(41 * var(--u));
+  }
+  .skin-card__ill {
+    position: relative;
+    flex: none;
+    width: calc(179 * var(--u));
+    height: calc(170 * var(--u));
+  }
+  .skin-card__mouse {
+    position: absolute;
+    left: calc(-15 * var(--u));
+    top: calc(-12.5 * var(--u));
+    width: calc(206 * var(--u));
+    height: calc(188 * var(--u));
+    overflow: hidden;
+  }
+  /* Figma image crop: 100.18% x 110.06% at -0.09% / -5.02%. */
+  .skin-card__mouse :global(img) {
+    position: absolute;
+    left: -0.09%;
+    top: -5.02%;
+    width: 100.18%;
+    height: 110.06%;
+    max-width: none;
+  }
+</style>

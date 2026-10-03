@@ -1,0 +1,99 @@
+---
+import { Image } from 'astro:assets';
+import HeadingLabel from './HeadingLabel.astro';
+import { url } from '../lib/url';
+import { PARTNER_LOGOS } from '../data/site';
+
+/**
+ * "Featured at" label (Figma "Proud-sponsor" 3037:674, 356 x 42, green pill
+ * Medium 30) and the partner logo row (Figma "Logotypes" 901:459: 1440 wide,
+ * logos spread between the 1240 column edges, top aligned, 45 tall).
+ *
+ * Responsive (PLAN.md): 6 logos, 4 at 768, 2 at 390. Repeats are decorative.
+ * Logos load eagerly: a lazy image hidden with display:none never loads.
+ */
+---
+
+<section class="partners" aria-label="Featured at">
+  <div class="partners__label" data-figma="3037:674">
+    <HeadingLabel lines="Featured at" as="h2" size="h3" tone="green" class="partners__title" />
+  </div>
+  <ul class="partners__logos" role="list" data-figma="901:459">
+    {
+      PARTNER_LOGOS.map((logo) => (
+        <li class="partners__logo" aria-hidden={logo.decorative ? 'true' : undefined}>
+          {logo.kind === 'svg' ? (
+            <img
+              src={url(logo.src)}
+              alt={logo.decorative ? '' : logo.name}
+              width={logo.width}
+              height={logo.height}
+              decoding="async"
+            />
+          ) : (
+            <Image
+              src={logo.src}
+              alt={logo.decorative ? '' : logo.name}
+              width={logo.width}
+              height={logo.height}
+              densities={[1, 2, 3]}
+              loading="eager"
+              decoding="async"
+            />
+          )}
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style>
+  .partners {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+  }
+  .partners__label {
+    display: flex;
+    justify-content: center;
+    width: 356px;
+    max-width: 100%;
+    height: 42px;
+    margin-inline: auto;
+  }
+  /* Figma: the label sits 9px right of the page centre */
+  @media (min-width: 1240px) {
+    .partners__label {
+      translate: 9px 0;
+    }
+  }
+  .partners__logos {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    width: 100%;
+    height: 45px;
+    margin: 0;
+    padding: 0 calc((100% - var(--column)) / 2);
+    list-style: none;
+  }
+  .partners__logo {
+    flex: none;
+  }
+  .partners__logo img {
+    object-fit: cover;
+  }
+  @media (max-width: 1023px) {
+    .partners__logo:nth-child(n + 5) {
+      display: none;
+    }
+  }
+  @media (max-width: 767px) {
+    .partners {
+      gap: 32px;
+    }
+    .partners__logo:nth-child(n + 3) {
+      display: none;
+    }
+  }
+</style>

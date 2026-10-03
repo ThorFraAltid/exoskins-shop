@@ -1,0 +1,154 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import HeadingLabel from './HeadingLabel.astro';
+import Button from './Button.astro';
+import { COMPATIBLE_WITH } from '../data/site';
+
+/**
+ * Product info column, Figma Item "Heading and link" 5205:982 (267 x 284 at
+ * x 1005) and "Buy now" 7037:839 (225 x 68, 29px below).
+ *
+ * Props
+ * - skin:   CollectionEntry<'skins'>   id, name, specs, amazonUrl
+ * - class?: string                     extra class on the root
+ *
+ * Content: id pill ("/" + id, Heading Green, Medium 30) as the page h1 (the skin
+ * name is in it, visually hidden); then, for skins with `specs`, Figma text
+ * 5205:984: "Factory New" Medium 30 #F3F3F3, "Pattern Template: …" and
+ * "Wear Rating: …" Regular 18 green, one empty line; then "Compatible with" and
+ * the site-level list (Regular 18 #F3F3F3, disc bullets, 1.5em indent).
+ * Skins without specs show the pill, the compatibility block and the button
+ * only. "Buy now": Button tertiary, opens `amazonUrl` in a new tab (data-buy).
+ */
+interface Props {
+  skin: CollectionEntry<'skins'>;
+  class?: string;
+}
+
+const { skin, class: className } = Astro.props;
+const { name, specs, amazonUrl } = skin.data;
+const compatId = `compatible-${skin.id}`;
+---
+
+<div class:list={['info', className]}>
+  <div class:list={['info__box', { 'info__box--specs': specs }]} data-figma="5205:982">
+    <h1 class="info__title">
+      <HeadingLabel lines={`/${skin.id}`} as="span" size="h3" tone="green" />
+      <span class="visually-hidden">{name}</span>
+    </h1>
+    <div class="info__text">
+      {
+        specs && (
+          <>
+            <p class="info__condition">{specs.condition}</p>
+            <p class="info__spec">Pattern Template: {specs.patternTemplate}</p>
+            <p class="info__spec">Wear Rating: {specs.wearRating}</p>
+          </>
+        )
+      }
+      <p class="info__compat-label" id={compatId}>Compatible with</p>
+      <ul class="info__compat" aria-labelledby={compatId}>
+        {COMPATIBLE_WITH.map((model) => <li>{model}</li>)}
+      </ul>
+    </div>
+  </div>
+  <Button
+    variant="tertiary"
+    href={amazonUrl}
+    external
+    class="info__buy"
+    data-buy
+    data-figma="7037:839">Buy now</Button
+  >
+</div>
+
+<style>
+  .info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 29px;
+  }
+  .info__box {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    width: 100%;
+  }
+  /* Figma frame 5205:982 is 284 tall (text box 226 for 222px of text). */
+  @media (min-width: 1240px) {
+    .info__box--specs {
+      min-height: 284px;
+    }
+  }
+  .info__title {
+    display: block;
+    font-size: inherit;
+    font-weight: inherit;
+  }
+  .info__text {
+    width: 100%;
+    max-width: 257px;
+    color: var(--c-grey);
+    font-size: var(--fs-p);
+    line-height: var(--lh-p);
+  }
+  .info__condition {
+    font-size: var(--fs-h3);
+    font-weight: var(--fw-medium);
+    line-height: var(--lh-heading);
+    /* Figma's mixed-size text node sets the first 18px line 3.5px closer. */
+    margin-bottom: -0.117em;
+  }
+  .info__spec {
+    color: var(--c-green);
+  }
+  /* Figma: one empty 18px line between the specs and "Compatible with". */
+  .info__spec + .info__compat-label {
+    margin-top: 1lh;
+  }
+  .info__compat {
+    margin: 0;
+    padding-left: 1.5em;
+    list-style: none;
+  }
+  /* Figma bullet: a 4.5px dot centred 13px from the left edge and on the
+     line's glyphs (the browser disc is larger and sits further left). */
+  .info__compat li {
+    position: relative;
+  }
+  .info__compat li::before {
+    content: '';
+    position: absolute;
+    left: -0.903em;
+    top: calc(0.5lh - 0.042em);
+    width: 0.25em;
+    height: 0.25em;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  /* "Buy now" (7037:836 / 7037:837): 225 x 68, label Medium 20/28 #191A23. */
+  .info :global(.info__buy) {
+    width: 225px;
+    font-weight: var(--fw-medium);
+    color: var(--c-dark);
+  }
+  .info :global(.info__buy:hover) {
+    color: var(--c-green);
+  }
+
+  @media (max-width: 767px) {
+    .info {
+      align-items: stretch;
+    }
+    .info :global(.info__buy) {
+      display: flex;
+      width: 100%;
+    }
+    .info__text {
+      max-width: none;
+    }
+  }
+</style>

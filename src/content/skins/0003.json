@@ -1,0 +1,49 @@
+{
+  "name": "Lightning",
+  "card": {
+    "kind": "image",
+    "src": "../../assets/skins/0003/2.png"
+  },
+  "gallery": {
+    "images": [
+      {
+        "src": "../../assets/skins/0003/1.png",
+        "thumb": "../../assets/skins/0003/3.png",
+        "thumbPlacement": {
+          "x": -24.868,
+          "y": -16.611,
+          "w": 150.066,
+          "h": 158.06
+        }
+      },
+      {
+        "src": "../../assets/skins/0003/2.png"
+      },
+      {
+        "src": "../../assets/skins/0003/4.png",
+        "thumbPlacement": {
+          "x": -26.401,
+          "y": -15.263,
+          "w": 153.242,
+          "h": 161.42
+        }
+      },
+      {
+        "src": "../../assets/skins/0003/pattern.png",
+        "main": "cover",
+        "thumbPlacement": {
+          "x": -92.034,
+          "y": -184.786,
+          "w": 294.218,
+          "h": 309.925
+        }
+      }
+    ]
+  },
+  "specs": {
+    "condition": "Factory New",
+    "patternTemplate": "524",
+    "wearRating": "0,779833555"
+  },
+  "amazonUrl": "https://www.amazon.com/"
+}

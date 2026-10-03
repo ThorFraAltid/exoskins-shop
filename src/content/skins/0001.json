@@ -1,0 +1,14 @@
+{
+  "name": "Graffiti",
+  "card": { "kind": "image", "src": "../../assets/skins/0001-card.png" },
+  "gallery": {
+    "video": {
+      "src": "/media/skins/0001.mp4",
+      "poster": "/media/skins/0001-poster.jpg",
+      "width": 1274,
+      "height": 1186
+    },
+    "images": []
+  },
+  "amazonUrl": "https://www.amazon.com/"
+}

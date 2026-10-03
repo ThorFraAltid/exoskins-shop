@@ -1,0 +1,36 @@
+---
+/**
+ * Not found page. No Figma frame: built only from existing components and
+ * tokens (nav bar as on the Item page, Heading pill, arrow link, footer).
+ */
+import Base from '../layouts/Base.astro';
+import NavBar from '../components/NavBar.astro';
+import HeadingLabel from '../components/HeadingLabel.astro';
+import ArrowLink from '../components/ArrowLink.astro';
+import Footer from '../components/Footer.astro';
+import { url } from '../lib/url';
+---
+
+<Base title="404">
+  <NavBar variant="bar" />
+  <main class="not-found column">
+    <HeadingLabel lines="404" as="h1" size="h2" tone="green" />
+    <ArrowLink variant="white" label="Back to Home" href={url('/')} />
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .not-found {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 40px;
+    padding-block: 160px;
+  }
+  @media (max-width: 767px) {
+    .not-found {
+      padding-block: 96px;
+    }
+  }
+</style>

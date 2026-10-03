@@ -1,0 +1,127 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+/**
+ * Button, Figma component set 403:245. 68px tall (20/35 padding, label 20/28).
+ *
+ * Props
+ * - variant:  'primary'   #191A23 fill, white label        (Figma "Button primary")
+ *             'secondary' 1px #191A23 border, black label   (Figma "Button secondary")
+ *             'tertiary'  #B9FF66 fill, black label         (Figma "Button tertiary")
+ *             Default 'primary'.
+ * - onDark:   secondary only: #F3F3F3 border and label for black surfaces
+ *             (nav "Shopping basket", Figma 3069:931 / 5190:1443).
+ * - href:     renders an <a>; without it a <button> is rendered.
+ * - external: with href: opens in a new tab (target=_blank, rel=noopener).
+ * - type:     <button> type, default 'button'.
+ * - fullWidth stretch to the container width (mobile menu, footer at 390).
+ * - class, and any other attribute (aria-*, data-*, id, ...), passed to the element.
+ *
+ * States (PLAN.md "States"): tertiary (green) -> black fill, green label, green
+ * border; primary (dark) -> green fill, black label; secondary (outline) ->
+ * white fill, black label.
+ */
+type Props = {
+  variant?: 'primary' | 'secondary' | 'tertiary';
+  onDark?: boolean;
+  href?: string;
+  external?: boolean;
+  type?: 'button' | 'submit' | 'reset';
+  fullWidth?: boolean;
+  class?: string;
+} & Omit<HTMLAttributes<'a'> & HTMLAttributes<'button'>, 'type' | 'class' | 'href'>;
+
+const {
+  variant = 'primary',
+  onDark = false,
+  href,
+  external = false,
+  type = 'button',
+  fullWidth = false,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const classes = [
+  'btn',
+  `btn--${variant}`,
+  { 'btn--on-dark': onDark && variant === 'secondary', 'btn--full': fullWidth },
+  className,
+];
+---
+
+{
+  href ? (
+    <a
+      class:list={classes}
+      href={href}
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noopener' : undefined}
+      {...rest}
+    >
+      <slot />
+    </a>
+  ) : (
+    <button class:list={classes} type={type} {...rest}>
+      <slot />
+    </button>
+  )
+}
+
+<style>
+  .btn {
+    display: inline-flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 20px 35px;
+    border: 0;
+    border-radius: var(--r-button);
+    font-family: var(--font);
+    font-weight: var(--fw-regular);
+    font-size: var(--fs-label);
+    line-height: var(--lh-label);
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color var(--dur) var(--ease),
+      color var(--dur) var(--ease),
+      box-shadow var(--dur) var(--ease);
+  }
+  .btn--full {
+    display: flex;
+    width: 100%;
+  }
+  .btn--primary {
+    background: var(--c-dark);
+    color: var(--c-white);
+  }
+  .btn--primary:hover {
+    background: var(--c-green);
+    color: var(--c-black);
+  }
+  /* Figma strokes are inside the 68px box: inset shadow instead of a border. */
+  .btn--secondary {
+    background: transparent;
+    color: var(--c-black);
+    box-shadow: inset 0 0 0 1px var(--c-dark);
+  }
+  .btn--secondary.btn--on-dark {
+    color: var(--c-grey);
+    box-shadow: inset 0 0 0 1px var(--c-grey);
+  }
+  .btn--secondary:hover {
+    background: var(--c-white);
+    color: var(--c-black);
+  }
+  .btn--tertiary {
+    background: var(--c-green);
+    color: var(--c-black);
+  }
+  .btn--tertiary:hover {
+    background: var(--c-black);
+    color: var(--c-green);
+    box-shadow: inset 0 0 0 1px var(--c-green);
+  }
+</style>

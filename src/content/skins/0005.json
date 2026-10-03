@@ -1,0 +1,15 @@
+{
+  "name": "Green",
+  "card": {
+    "kind": "image",
+    "src": "../../assets/skins/0005-card.png"
+  },
+  "gallery": {
+    "images": [
+      {
+        "src": "../../assets/skins/0005-card.png"
+      }
+    ]
+  },
+  "amazonUrl": "https://www.amazon.com/"
+}

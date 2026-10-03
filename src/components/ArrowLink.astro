@@ -1,0 +1,191 @@
+---
+/**
+ * Arrow link, Figma component set "Link" (403:283).
+ * Circle variants: 41px circle with arrow, 15px gap, label Regular 20/28.
+ * Simple variants: label, 15px gap, bare arrow (17.3 x 10 layout box).
+ *
+ * Props
+ * - variant:  Figma variant                      circle   arrow    label
+ *     'white'         (Figma "White")            white    green    white
+ *     'white-2'       (Figma "White 2")          white    black    white
+ *     'black'         (Figma "Black")            #191A23  green    black
+ *     'black-2'       (Figma "Black 2")          #191A23  white    black
+ *     'green'         (Figma "Green")            green    black    black
+ *     'green-2'       (Figma "Green 2")          green    white    white
+ *     'simple-green'  (Figma "Simple green")     -        green    green
+ *     'simple-white'  (Figma "Simple white")     -        white    white
+ *     'simple-black'  (Figma "Simple black")     -        black    black
+ *   Card instance overrides (Home/Item cards):
+ *     'card-dark'     on black cards (901:471)   #F3F3F3  black    #F3F3F3
+ *     'card-light'    on grey/green cards        black    green    black
+ * - label:    link text (default "See more")
+ * - href:     renders an <a>. Leave out inside a card that is itself a link:
+ *             the component then renders a <span> (no nested links).
+ * - external: with href: target=_blank rel=noopener
+ * - class:    extra class
+ *
+ * State: the circle and arrow colours swap on hover of the link itself or of
+ * an enclosing link (card hover, PLAN.md "States").
+ */
+type Variant =
+  | 'white'
+  | 'white-2'
+  | 'black'
+  | 'black-2'
+  | 'green'
+  | 'green-2'
+  | 'simple-green'
+  | 'simple-white'
+  | 'simple-black'
+  | 'card-dark'
+  | 'card-light';
+
+interface Props {
+  variant?: Variant;
+  label?: string;
+  href?: string;
+  external?: boolean;
+  class?: string;
+}
+
+const { variant = 'white', label = 'See more', href, external = false, class: className } =
+  Astro.props;
+const simple = variant.startsWith('simple-');
+const Tag = href ? 'a' : 'span';
+const ARROW =
+  'M11.2501 24.7009C10.5326 25.1151 10.2868 26.0325 10.701 26.75C11.1152 27.4674 12.0326 27.7132 12.7501 27.299L12.0001 26L11.2501 24.7009ZM30.7694 16.3882C30.9839 15.588 30.509 14.7655 29.7088 14.5511L16.6688 11.057C15.8686 10.8426 15.0461 11.3175 14.8317 12.1177C14.6173 12.9179 15.0921 13.7404 15.8923 13.9548L27.4834 17.0606L24.3776 28.6517C24.1632 29.4519 24.6381 30.2744 25.4383 30.4888C26.2385 30.7033 27.061 30.2284 27.2754 29.4282L30.7694 16.3882ZM12.0001 26L12.7501 27.299L30.0706 17.299L29.3206 16L28.5706 14.7009L11.2501 24.7009L12.0001 26Z';
+const SIMPLE_ARROW =
+  'M0.75025 13.6954C0.0328115 14.1096 -0.213001 15.027 0.201212 15.7444C0.615426 16.4619 1.53281 16.7077 2.25025 16.2935L1.50025 14.9944L0.75025 13.6954ZM20.2696 5.38266C20.4841 4.58246 20.0092 3.75995 19.209 3.54554L6.16899 0.0514837C5.36879 -0.162929 4.54628 0.311944 4.33187 1.11214C4.11746 1.91234 4.59233 2.73485 5.39253 2.94926L16.9836 6.05509L13.8778 17.6462C13.6634 18.4464 14.1383 19.2689 14.9385 19.4833C15.7387 19.6977 16.5612 19.2229 16.7756 18.4227L20.2696 5.38266ZM1.50025 14.9944L2.25025 16.2935L19.5708 6.29347L18.8208 4.99443L18.0708 3.69539L0.75025 13.6954L1.50025 14.9944Z';
+---
+
+<Tag
+  class:list={['al', `al--${variant}`, className]}
+  href={href}
+  target={href && external ? '_blank' : undefined}
+  rel={href && external ? 'noopener' : undefined}
+>
+  {
+    !simple && (
+      <svg class="al__icon" width="41" height="41" viewBox="0 0 41 41" aria-hidden="true">
+        <circle class="al__circle" cx="20.5" cy="20.5" r="20.5" />
+        <path class="al__arrow" d={ARROW} />
+      </svg>
+    )
+  }
+  <span class="al__label">{label}</span>
+  {
+    simple && (
+      <span class="al__simple" aria-hidden="true">
+        <svg width="20.3211" height="19.5348" viewBox="0 0 20.3211 19.5348">
+          <path class="al__arrow" d={SIMPLE_ARROW} />
+        </svg>
+      </span>
+    )
+  }
+</Tag>
+
+<style>
+  .al {
+    display: inline-flex;
+    align-items: center;
+    gap: 15px;
+    font-size: var(--fs-label);
+    line-height: var(--lh-label);
+    font-weight: var(--fw-regular);
+    color: var(--al-label);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .al__icon {
+    flex: none;
+    width: 41px;
+    height: 41px;
+  }
+  .al__circle {
+    fill: var(--al-circle);
+    transition: fill var(--dur) var(--ease);
+  }
+  .al__arrow {
+    fill: var(--al-arrow);
+    transition: fill var(--dur) var(--ease);
+  }
+  .al__simple {
+    position: relative;
+    flex: none;
+    width: 17.321px;
+    height: 10px;
+  }
+  .al__simple svg {
+    position: absolute;
+    left: -1.5px;
+    top: -4.994px;
+    width: 20.3211px;
+    height: 19.5348px;
+    overflow: visible;
+  }
+
+  .al--white {
+    --al-circle: var(--c-white);
+    --al-arrow: var(--c-green);
+    --al-label: var(--c-white);
+  }
+  .al--white-2 {
+    --al-circle: var(--c-white);
+    --al-arrow: var(--c-black);
+    --al-label: var(--c-white);
+  }
+  .al--black {
+    --al-circle: var(--c-dark);
+    --al-arrow: var(--c-green);
+    --al-label: var(--c-black);
+  }
+  .al--black-2 {
+    --al-circle: var(--c-dark);
+    --al-arrow: var(--c-white);
+    --al-label: var(--c-black);
+  }
+  .al--green {
+    --al-circle: var(--c-green);
+    --al-arrow: var(--c-black);
+    --al-label: var(--c-black);
+  }
+  .al--green-2 {
+    --al-circle: var(--c-green);
+    --al-arrow: var(--c-white);
+    --al-label: var(--c-white);
+  }
+  .al--simple-green {
+    --al-arrow: var(--c-green);
+    --al-label: var(--c-green);
+  }
+  .al--simple-white {
+    --al-arrow: var(--c-white);
+    --al-label: var(--c-white);
+  }
+  .al--simple-black {
+    --al-arrow: var(--c-black);
+    --al-label: var(--c-black);
+  }
+  .al--card-dark {
+    --al-circle: var(--c-grey);
+    --al-arrow: var(--c-black);
+    --al-label: var(--c-grey);
+  }
+  .al--card-light {
+    --al-circle: var(--c-black);
+    --al-arrow: var(--c-green);
+    --al-label: var(--c-black);
+  }
+
+  /* Hover: circle and arrow swap colours (on the link or an enclosing link). */
+  a.al:hover .al__circle,
+  :global(a:hover) .al__circle,
+  :global(a:focus-visible) .al__circle {
+    fill: var(--al-arrow);
+  }
+  a.al:hover .al__icon .al__arrow,
+  :global(a:hover) .al__icon .al__arrow,
+  :global(a:focus-visible) .al__icon .al__arrow {
+    fill: var(--al-circle);
+  }
+</style>

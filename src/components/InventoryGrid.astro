@@ -1,0 +1,138 @@
+---
+import { getCollection } from 'astro:content';
+import SkinCard from './SkinCard.astro';
+import CrateCard from './CrateCard.astro';
+import DropCard from './DropCard.astro';
+import { homeGrid, HOME_LABEL_PREFIX, type HomeSlot } from '../data/placements';
+
+/**
+ * Home "Inventory" grid: the slots of `homeGrid` (src/data/placements.ts) in
+ * Figma order. Each slot is wrapped in a cell with `data-card` (HOOKS.md: the
+ * cell contains exactly one link).
+ *
+ * Layout (PLAN.md "Responsive spec"):
+ * - 3 columns (405 + 13 gap at 1440), 20px row gap. Skull card ('wide') spans
+ *   the full row; dragon card ('large') spans 2 x 2.
+ * - >= 1304px (the 1240 column at full width): Figma geometry 1:1. Figma places
+ *   several cards a few px off that grid; FIGMA_OFFSET moves them there with
+ *   `translate` (no effect on the layout of the other cards). Skull 1232 x 359,
+ *   dragon 822 x 633 (7px taller than its 2 rows; a -7px bottom margin keeps
+ *   the rows at 303).
+ * - < 1304: fluid columns, cards keep 405:303; skull keeps 1232:359 but is at
+ *   least one card tall, image cover.
+ * - 768-1023: 2 columns, dense flow; dragon full row 1:1.
+ * - <= 767: 1 column; dragon 1:1.
+ */
+
+/** Figma frame position minus the regular grid position, in px (desktop only). */
+const FIGMA_OFFSET: Record<string, [dx: number, dy: number]> = {
+  '5081:787': [3, 0], // skull: x 103 (grid 100)
+  '5081:800': [3, 3], // C: 103 / 1871 (grid 100 / 1868)
+  '5081:807': [1, 3], // crate 2: 519 / 1871 (grid 518 / 1868)
+  '5081:793': [2, 3], // D: 938 / 1871 (grid 936 / 1868)
+  '5036:1177': [0, 7], // E: 100 / 2198 (grid 100 / 2191)
+  '5036:863': [5, 7], // dragon: 523 / 2198 (grid 518 / 2191)
+  '5081:837': [3, 4], // F: 103 / 2518 (grid 100 / 2514)
+};
+
+const skins = await getCollection('skins');
+const byId = new Map(skins.map((s) => [s.id, s]));
+const skinFor = (id: string) => {
+  const entry = byId.get(id);
+  if (!entry) throw new Error(`InventoryGrid: homeGrid references unknown skin "${id}"`);
+  return entry;
+};
+
+const cellClass = (slot: HomeSlot) =>
+  slot.kind === 'drop' ? `inv__cell inv__cell--${slot.size}` : 'inv__cell';
+const cellStyle = (slot: HomeSlot) => {
+  const offset = FIGMA_OFFSET[slot.figma];
+  return offset ? `--dx: ${offset[0]}px; --dy: ${offset[1]}px` : undefined;
+};
+---
+
+<div class="inv">
+  {
+    homeGrid.map((slot) => (
+      <div class={cellClass(slot)} style={cellStyle(slot)} data-card>
+        {slot.kind === 'skin' ? (
+          <SkinCard
+            skin={skinFor(slot.skin)}
+            variant={slot.variant}
+            tagline={slot.tagline}
+            labelPrefix={HOME_LABEL_PREFIX}
+            figma={slot.figma}
+          />
+        ) : slot.kind === 'crate' ? (
+          <CrateCard figma={slot.figma} />
+        ) : (
+          <DropCard drop={slot} />
+        )}
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .inv {
+    --cols: 3;
+    --col-gap: 13px;
+    /* height of one 405:303 card at the current column width */
+    --card-h: calc((100cqi - (var(--cols) - 1) * var(--col-gap)) / var(--cols) * 303 / 405);
+    display: grid;
+    grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+    grid-auto-flow: row dense;
+    gap: 20px var(--col-gap);
+    width: var(--column);
+    margin-inline: auto;
+    container-type: inline-size;
+  }
+  .inv__cell {
+    min-width: 0;
+  }
+  /* Full row, 1232:359, but at least one card tall (an aspect-ratio with a
+     min-height would widen the cell instead). */
+  .inv__cell--wide {
+    grid-column: 1 / -1;
+    height: max(100cqi * 359 / 1232, var(--card-h));
+  }
+  .inv__cell--large {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+
+  @media (min-width: 1304px) {
+    .inv {
+      grid-template-columns: repeat(3, 405px);
+    }
+    .inv__cell {
+      translate: var(--dx, 0) var(--dy, 0);
+    }
+    .inv__cell--wide {
+      width: 1232px;
+      height: 359px;
+    }
+    .inv__cell--large {
+      width: 822px;
+      height: 633px;
+      margin-bottom: -7px;
+      align-self: start;
+    }
+  }
+
+  @media (max-width: 1023px) {
+    .inv {
+      --cols: 2;
+    }
+    .inv__cell--large {
+      grid-column: 1 / -1;
+      grid-row: auto;
+      aspect-ratio: 1;
+    }
+  }
+  @media (max-width: 767px) {
+    .inv {
+      --cols: 1;
+    }
+  }
+</style>

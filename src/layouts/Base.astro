@@ -1,0 +1,60 @@
+---
+import '@fontsource/space-grotesk/400.css';
+import '@fontsource/space-grotesk/500.css';
+import '../styles/global.css';
+import { url } from '../lib/url';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../data/site';
+
+/**
+ * Page shell: <head> (title, description, canonical, Open Graph, favicon),
+ * fonts (Space Grotesk 400 + 500), global styles, and a default slot for the page.
+ *
+ * Props
+ * - title?:       page title; rendered as "<title> | eXoskins.shop". Without it the
+ *                 title is "eXoskins.shop".
+ * - description?: meta and OG description (default: the Inventory subheading)
+ * - ogImage?:     public path of the OG image (default 'media/hero-poster.jpg')
+ */
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+}
+
+const {
+  title,
+  description = SITE_DESCRIPTION,
+  ogImage = 'media/hero-poster.jpg',
+} = Astro.props;
+
+if (!Astro.site) {
+  throw new Error('Base.astro: `site` is missing in astro.config.mjs');
+}
+const fullTitle = title ? `${title} | ${SITE_TITLE}` : SITE_TITLE;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImageUrl = new URL(url(ogImage), Astro.site).href;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href={url('favicon.svg')} />
+    <meta name="theme-color" content="#000000" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE_TITLE} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="generator" content={Astro.generator} />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

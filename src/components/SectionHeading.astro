@@ -1,0 +1,100 @@
+---
+import HeadingLabel from './HeadingLabel.astro';
+
+/**
+ * Section heading row: green label pill + optional subheading.
+ * Figma: "Heading & Subheading" 901:368 (Inventory), 901:380 (A word from our
+ * customers), 7094:816 (You Might Also Like); label = component set 403:261.
+ * Layout: 1240 column, label and subheading side by side with a 40px gap;
+ * stacked at <= 767px.
+ *
+ * Props
+ * - title:          string | string[]  label text (array = stacked pills)
+ * - subheading?:    string[]            subheading lines; each entry is one Figma
+ *                                       line (explicit line break between entries)
+ * - subheadingStyle 'h4' | 'p'          'h4' = Medium 20 #F3F3F3 (Inventory, 901:370);
+ *                                       'p'  = Regular 18 (901:382). Default 'h4'.
+ * - subheadingWidth number             max width in px (Figma: 580 for 901:370,
+ *                                       473 for 901:382). Default 580.
+ * - as:             heading element, default 'h2'
+ * - id?:            id on the root (anchor target, e.g. "inventory")
+ * - figma?:         Figma node id, written to data-figma
+ * - class?:         extra class on the root
+ *
+ * Note: Figma 901:382 (testimonials subheading) is black text on the black
+ * page, so it is invisible in the design. Leave `subheading` out to match it.
+ */
+interface Props {
+  title: string | string[];
+  subheading?: string[];
+  subheadingStyle?: 'h4' | 'p';
+  subheadingWidth?: number;
+  as?: 'h1' | 'h2' | 'h3';
+  id?: string;
+  figma?: string;
+  class?: string;
+}
+
+const {
+  title,
+  subheading,
+  subheadingStyle = 'h4',
+  subheadingWidth = 580,
+  as = 'h2',
+  id,
+  figma,
+  class: className,
+} = Astro.props;
+---
+
+<div class:list={['section-heading column', className]} id={id} data-figma={figma}>
+  <HeadingLabel lines={title} as={as} size="h2" tone="green" />
+  {
+    subheading && (
+      <p
+        class:list={['section-heading__sub', `section-heading__sub--${subheadingStyle}`]}
+        style={`--sub-w: ${subheadingWidth}px`}
+      >
+        {subheading.map((line, i) => (
+          <>
+            {line}
+            {i < subheading.length - 1 && <br />}
+          </>
+        ))}
+      </p>
+    )
+  }
+</div>
+
+<style>
+  .section-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 40px;
+  }
+  .section-heading__sub {
+    flex: 0 1 var(--sub-w);
+    min-width: 0;
+    line-height: var(--lh-heading);
+  }
+  .section-heading__sub--h4 {
+    font-size: var(--fs-h4);
+    font-weight: var(--fw-medium);
+    color: var(--c-grey);
+  }
+  .section-heading__sub--p {
+    font-size: var(--fs-p);
+    line-height: var(--lh-p);
+    font-weight: var(--fw-regular);
+    color: var(--c-black);
+  }
+  @media (max-width: 767px) {
+    .section-heading {
+      flex-direction: column;
+      gap: 20px;
+    }
+    .section-heading__sub {
+      flex-basis: auto;
+    }
+  }
+</style>

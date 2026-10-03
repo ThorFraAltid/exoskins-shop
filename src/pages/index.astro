@@ -1,0 +1,73 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Partners from '../components/Partners.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import InventoryGrid from '../components/InventoryGrid.astro';
+import Testimonials from '../components/Testimonials.astro';
+import Footer from '../components/Footer.astro';
+
+/*
+ * Home, Figma frame 901:367 (1440 x 4343). Vertical rhythm at 1440 (Figma y):
+ * header 23-749, "Featured at" 785, logos 867, Inventory heading 1075, grid
+ * 1166-2817 (+ per-card offsets), testimonials heading 2980, testimonials
+ * 3094-3719, footer 3788-4343.
+ * The two section headings are full-width boxes in Figma (x 0, w 1440), so
+ * data-figma sits on a full-width wrapper around SectionHeading.
+ */
+---
+
+<Base>
+  <Hero />
+  <main id="main" class="home">
+    <h1 class="visually-hidden">eXoskins.shop</h1>
+    <Partners />
+    <div class="home__heading" id="inventory" data-figma="901:368">
+      <SectionHeading
+        title="Inventory"
+        subheading={['Get your skin for your favorite mouse right here.', 'More are dropping soon.']}
+      />
+    </div>
+    <InventoryGrid />
+    <div class="home__heading home__heading--testimonials" data-figma="901:380">
+      <SectionHeading title="A word from our customers" />
+    </div>
+    <Testimonials />
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .home {
+    --space-section: 163px;
+    display: flex;
+    flex-direction: column;
+    padding-top: 36px;
+    padding-bottom: 69px;
+  }
+  .home__heading {
+    width: 100%;
+    margin-top: var(--space-section);
+    margin-bottom: 40px;
+    scroll-margin-top: 24px;
+  }
+  .home__heading--testimonials {
+    margin-bottom: 63px;
+  }
+
+  @media (max-width: 1023px) {
+    .home {
+      --space-section: 96px;
+    }
+  }
+  @media (max-width: 767px) {
+    .home {
+      --space-section: 64px;
+      padding-top: 32px;
+      padding-bottom: 40px;
+    }
+    .home__heading {
+      margin-bottom: 32px;
+    }
+  }
+</style>

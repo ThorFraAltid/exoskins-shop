@@ -1,0 +1,139 @@
+---
+import { Picture } from 'astro:assets';
+import HeadingLabel from './HeadingLabel.astro';
+import ArrowLink from './ArrowLink.astro';
+import crate from '../assets/cards/crate.png';
+import { url } from '../lib/url';
+import { SUBSCRIBE_ANCHOR } from '../data/site';
+
+/**
+ * Green "Dropping soon" crate card, 405x303. Figma: Home 5036:748 / 5081:807,
+ * Item 5190:1578 / 7036:803. The whole card links to the footer subscribe form.
+ *
+ * Props
+ * - figma?:   string              Figma node id -> data-figma
+ * - href?:    string              default url('/#subscribe') (PLAN.md)
+ * - loading?: 'lazy' | 'eager'    image loading, default 'lazy'
+ * - class?:   string
+ *
+ * Size and states: as SkinCard (fills its container, keeps 405:303, scales
+ * as one piece; hover lifts 4px, edge grows, arrow circle inverts).
+ */
+interface Props {
+  figma?: string;
+  href?: string;
+  loading?: 'lazy' | 'eager';
+  class?: string;
+}
+
+const { figma, href = url(SUBSCRIBE_ANCHOR), loading = 'lazy', class: className } = Astro.props;
+---
+
+<a class:list={['crate-card', className]} href={href} data-figma={figma}>
+  <div class="crate-card__inner">
+    <div class="crate-card__text">
+      <HeadingLabel lines="Dropping soon" as="h3" size="h3" tone="black-green" />
+      <span class="crate-card__spacer"></span>
+      <ArrowLink variant="card-light" label="See more" />
+    </div>
+    <div class="crate-card__ill" aria-hidden="true">
+      <Picture
+        src={crate}
+        alt=""
+        formats={['avif', 'webp']}
+        widths={[290, 580, 870]}
+        width={870}
+        sizes="(max-width: 767px) 72vw, (max-width: 1023px) 36vw, (max-width: 1239px) 24vw, 290px"
+        loading={loading}
+        decoding="async"
+      />
+    </div>
+  </div>
+</a>
+
+<style>
+  .crate-card {
+    --focus-ring: var(--c-green);
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 405 / 303;
+    container-type: inline-size;
+    overflow: clip;
+    background: var(--c-green);
+    color: var(--c-black);
+    border: var(--border);
+    border-radius: var(--r-card);
+    box-shadow: var(--edge);
+    text-decoration: none;
+    transition:
+      transform var(--dur) var(--ease),
+      box-shadow var(--dur) var(--ease);
+  }
+  .crate-card:hover,
+  .crate-card:focus-visible {
+    transform: translateY(var(--lift));
+    box-shadow: var(--edge-hover);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .crate-card:hover,
+    .crate-card:focus-visible {
+      transform: none;
+    }
+  }
+  .crate-card__inner {
+    --u: calc((100cqi + 2px) / 405);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    padding: calc(50 * var(--u) - 1px) calc(10 * var(--u) - 1px) calc(50 * var(--u) - 1px)
+      calc(50 * var(--u) - 1px);
+  }
+  .crate-card__text {
+    position: relative;
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: calc(20 * var(--u));
+    width: calc(267 * var(--u));
+    height: calc(203 * var(--u));
+    margin-right: calc(-212 * var(--u));
+  }
+  .crate-card__text :global(.hl) {
+    font-size: calc(30 * var(--u));
+  }
+  .crate-card__text :global(.hl__pill) {
+    padding-inline: calc(7 * var(--u));
+    border-radius: calc(7 * var(--u));
+  }
+  .crate-card__spacer {
+    flex: 1 0 0;
+    min-height: 1px;
+  }
+  .crate-card__text :global(.al) {
+    gap: calc(15 * var(--u));
+    font-size: calc(20 * var(--u));
+    line-height: calc(28 * var(--u));
+  }
+  .crate-card__text :global(.al__icon) {
+    width: calc(41 * var(--u));
+    height: calc(41 * var(--u));
+  }
+  .crate-card__ill {
+    position: relative;
+    flex: none;
+    width: calc(290 * var(--u));
+    height: calc(163 * var(--u));
+  }
+  .crate-card__ill :global(img) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+  }
+</style>

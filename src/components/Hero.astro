@@ -1,0 +1,299 @@
+---
+import NavBar from './NavBar.astro';
+import { url } from '../lib/url';
+
+/**
+ * Home header, Figma "Header" 7102:807: 1241 x 726 black box, 1px green border,
+ * radius 45, green bottom edge. Contains the hero nav row (Figma 3069:924, 26px
+ * from the top, 1px from the left), the header video in the geometry of the
+ * Figma layer "Header-video 1" (3037:673: 1540 x 866 at -127 / -8 inside the
+ * border, object-fit cover) and the four USP labels (3069:908, Figma SVGs).
+ *
+ * Video (PLAN.md "Media", "States"): muted, loop, playsinline, no autoplay
+ * attribute. The script below plays it only while
+ * `prefers-reduced-motion: no-preference`; otherwise the poster stays.
+ *
+ * Responsive (PLAN.md "Responsive spec"):
+ * - >= 1024: the Figma layout; below 1240 every inner measure scales with the
+ *   box (1u = box inner width / 1239).
+ * - 768-1023: video 16:9 at full box width (never cropped on the sides), the
+ *   nav over its top, the USP labels in one row below the video.
+ * - <= 767: nav row above the video, USP labels 2 x 2.
+ */
+const usp = (file: string) => url(`media/usp/${file}`);
+---
+
+<div class="hero" data-figma="7102:807">
+  <div class="hero__nav">
+    <NavBar variant="hero" />
+  </div>
+  <div class="hero__stage">
+    <div class="hero__media" aria-hidden="true">
+      <video
+        class="hero__video"
+        width="1920"
+        height="1080"
+        muted
+        loop
+        playsinline
+        preload="none"
+        poster={url('media/hero-poster.jpg')}
+        tabindex="-1"
+        data-hero-video
+      >
+        <source src={url('media/hero-1280.mp4')} type="video/mp4" media="(max-width: 1023px)" />
+        <source src={url('media/hero-1920.mp4')} type="video/mp4" />
+      </video>
+    </div>
+    <ul class="hero__usps" role="list" aria-label="Features">
+      <li class="usp usp--1">
+        <img src={usp('usp-1.svg')} alt="/grip_add_aim" width="134.927" height="40.8193" />
+      </li>
+      <li class="usp usp--2">
+        <span class="usp__icon2">
+          <img src={usp('usp-2-icon.svg')} alt="" width="44.5237" height="39.4854" />
+        </span>
+        <img
+          class="usp__text2"
+          src={usp('usp-2-text.svg')}
+          alt="/cl_sweatproof"
+          width="99.3202"
+          height="10.4052"
+        />
+      </li>
+      <li class="usp usp--3">
+        <img src={usp('usp-3.svg')} alt="/precision_cut" width="138.673" height="40.84" />
+      </li>
+      <li class="usp usp--4">
+        <span class="usp__box4">
+          <img
+            class="usp__text4"
+            src={usp('usp-4-text.svg')}
+            alt="/nano_thin_mode"
+            width="106.17"
+            height="9.36339"
+          />
+          <img
+            class="usp__icon4"
+            src={usp('usp-4-icon.svg')}
+            alt=""
+            width="40.5493"
+            height="39.8184"
+          />
+        </span>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<style>
+  .hero {
+    position: relative;
+    /* Figma: 1241 wide, 1px left of the 1240 column */
+    width: calc(var(--column) + 1px);
+    margin: 23px 0 0 calc((100% - var(--column)) / 2 - 1px);
+    aspect-ratio: 1241 / 726;
+    overflow: clip;
+    background: var(--c-black);
+    border: var(--border);
+    border-radius: var(--r-card);
+    box-shadow: var(--edge);
+  }
+  .hero__nav {
+    position: absolute;
+    z-index: 1;
+    /* Figma 3069:924: 26px from the outer top, 1px from the outer left, 1240 wide */
+    top: 25px;
+    left: 0;
+    right: -1px;
+  }
+  .hero__stage {
+    /* 1u = 1px at the Figma box (inner width 1239) */
+    --u: calc(100cqi / 1239);
+    position: absolute;
+    inset: 0;
+    container-type: inline-size;
+  }
+  /* Figma places a still ("Header-video 1", 1540x866 at -127/-8). The real
+     video has the crate at the bottom of the frame, which would sit behind the
+     USP row at that crop, so the video is fitted above the USP row instead. */
+  .hero__media {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: calc(1173 * var(--u));
+    height: calc(660 * var(--u));
+    transform: translateX(-50%);
+  }
+  /* The video's glow does not reach pure black at the frame edges; fade the
+     edges out so no frame outline shows on the black hero box. */
+  .hero__video {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    -webkit-mask-image:
+      linear-gradient(to right, transparent, #000 14%, #000 86%, transparent),
+      linear-gradient(to bottom, #000 82%, transparent);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(to right, transparent, #000 14%, #000 86%, transparent),
+      linear-gradient(to bottom, #000 82%, transparent);
+    mask-composite: intersect;
+  }
+  .hero__usps {
+    position: absolute;
+    left: calc(81 * var(--u));
+    top: calc(648 * var(--u));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: calc(1078 * var(--u));
+    margin: 0;
+    padding: 0 calc(50 * var(--u));
+    overflow: clip;
+    list-style: none;
+  }
+  .usp {
+    position: relative;
+    flex: none;
+  }
+  .usp img {
+    max-width: none;
+  }
+  .usp--1 img {
+    width: calc(134.927 * var(--u));
+    height: calc(40.8193 * var(--u));
+  }
+  .usp--2 {
+    display: flex;
+    align-items: center;
+    gap: calc(6 * var(--u));
+    overflow: clip;
+  }
+  .usp__icon2 {
+    position: relative;
+    display: block;
+    width: calc(43.978 * var(--u));
+    height: calc(39.268 * var(--u));
+  }
+  .usp__icon2 img {
+    position: absolute;
+    left: 0;
+    top: calc(-0.11 * var(--u));
+    width: calc(44.5237 * var(--u));
+    height: calc(39.4854 * var(--u));
+  }
+  .usp__text2 {
+    width: calc(99.3202 * var(--u));
+    height: calc(10.4052 * var(--u));
+  }
+  .usp--3 img {
+    width: calc(138.673 * var(--u));
+    height: calc(40.84 * var(--u));
+  }
+  .usp--4 {
+    padding-block: calc(1 * var(--u));
+  }
+  .usp__box4 {
+    position: relative;
+    display: block;
+    width: calc(152 * var(--u));
+    height: calc(40 * var(--u));
+    overflow: clip;
+  }
+  .usp__text4 {
+    position: absolute;
+    left: calc(43.32 * var(--u));
+    top: calc(16 * var(--u));
+    width: calc(106.17 * var(--u));
+    height: calc(9.36339 * var(--u));
+  }
+  .usp__icon4 {
+    position: absolute;
+    left: calc(-0.134 * var(--u));
+    top: calc(0.543 * var(--u));
+    width: calc(40.5493 * var(--u));
+    height: calc(39.8184 * var(--u));
+  }
+
+  /* 768-1023: video 16:9 at full width under the nav, labels in one row below */
+  @media (max-width: 1023px) {
+    .hero {
+      aspect-ratio: auto;
+    }
+    .hero__stage {
+      --u: 1px;
+      position: static;
+      display: flex;
+      flex-direction: column;
+    }
+    .hero__media {
+      position: relative;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 16 / 9;
+      transform: none;
+    }
+    .hero__usps {
+      position: static;
+      width: 100%;
+      padding: 16px 24px 32px;
+    }
+  }
+
+  /* <= 767: nav row above the video, labels 2 x 2 */
+  @media (max-width: 767px) {
+    .hero {
+      margin-top: 16px;
+    }
+    .hero__nav {
+      position: static;
+      padding-top: 12px;
+    }
+    .hero__stage {
+      /* shrink the labels when two of them do not fit side by side (< 390) */
+      --u: min(1px, (100cqi - 44px) / 302);
+    }
+    .hero__usps {
+      display: grid;
+      grid-template-columns: repeat(2, auto);
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px 12px;
+      padding: 16px 16px 28px;
+    }
+  }
+</style>
+
+<script>
+  const video = document.querySelector<HTMLVideoElement>('[data-hero-video]');
+  if (!video) {
+    throw new Error('Hero: [data-hero-video] is missing');
+  }
+  const motionAllowed = window.matchMedia('(prefers-reduced-motion: no-preference)');
+
+  const sync = () => {
+    if (!motionAllowed.matches) {
+      video.pause();
+      return;
+    }
+    video.play().catch((error: unknown) => {
+      // NotAllowedError: the browser refuses playback (e.g. battery saver), the
+      // poster stays, which is the designed still state. AbortError: a pause()
+      // interrupted the pending play(). Anything else is a real failure.
+      if (
+        error instanceof DOMException &&
+        (error.name === 'NotAllowedError' || error.name === 'AbortError')
+      ) {
+        return;
+      }
+      throw error;
+    });
+  };
+
+  sync();
+  motionAllowed.addEventListener('change', sync);
+</script>

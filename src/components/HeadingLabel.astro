@@ -1,0 +1,104 @@
+---
+/**
+ * Heading label pill(s), Figma component "Heading" (403:261).
+ * One pill per line, stacked (e.g. "Dropping" / "Soon").
+ *
+ * Props
+ * - lines:  string | string[]   text of each pill (one pill per entry)
+ * - as:     'h1' | 'h2' | 'h3' | 'h4' | 'p' | 'span'   element for the group (default 'h2')
+ * - size:   'h2' | 'h3' | 'h4'  type token: h2 = 40 (section titles), h3 = 30 (cards),
+ *                               h4 = 20 (footer "Contact us:"). Default 'h2'.
+ * - tone:   pill colours
+ *     'green'       green pill, black text (Figma variant Green; default)
+ *     'white'       white pill, black text (Figma variant White)
+ *     'dark'        #191A23 pill, white text (Figma variant Black)
+ *     'dark-green'  #191A23 pill, green text (footer "Contact us:" override)
+ *     'black-green' #000 pill, green text (crate "Dropping soon" override)
+ * - class:  extra class on the root
+ */
+interface Props {
+  lines: string | string[];
+  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'p' | 'span';
+  size?: 'h2' | 'h3' | 'h4';
+  tone?: 'green' | 'white' | 'dark' | 'dark-green' | 'black-green';
+  class?: string;
+}
+
+const { lines, as: Tag = 'h2', size = 'h2', tone = 'green', class: className } = Astro.props;
+const list = Array.isArray(lines) ? lines : [lines];
+---
+
+<Tag class:list={['hl', `hl--${size}`, `hl--${tone}`, className]}>
+  {
+    list.map((line, i) => (
+      <>
+        <span class="hl__line">
+          <span class="hl__pill">{line}</span>
+        </span>
+        {i < list.length - 1 && <span class="visually-hidden"> </span>}
+      </>
+    ))
+  }
+</Tag>
+
+<style>
+  .hl {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin: 0;
+    font-weight: var(--fw-medium);
+    line-height: var(--lh-heading);
+  }
+  .hl__line {
+    display: block;
+    max-width: 100%;
+    line-height: inherit;
+  }
+  /* Inline pill with cloned decoration: when a line has to wrap (narrow
+     screens), every wrapped line gets its own pill, like stacked Figma pills. */
+  .hl__pill {
+    display: inline;
+    padding-inline: var(--label-pad-x);
+    border-radius: var(--r-label);
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+  /* One line per pill from 768px: inline-block gives the exact Figma box
+     height (font size x 1.275, e.g. 30px -> 38.25px). */
+  @media (min-width: 768px) {
+    .hl__pill {
+      display: inline-block;
+      white-space: nowrap;
+    }
+  }
+  .hl--h2 {
+    font-size: var(--fs-h2);
+  }
+  .hl--h3 {
+    font-size: var(--fs-h3);
+  }
+  .hl--h4 {
+    font-size: var(--fs-h4);
+  }
+  .hl--green .hl__pill {
+    background: var(--c-green);
+    color: var(--c-black);
+  }
+  .hl--white .hl__pill {
+    background: var(--c-white);
+    color: var(--c-black);
+  }
+  .hl--dark .hl__pill {
+    background: var(--c-dark);
+    color: var(--c-white);
+  }
+  .hl--dark-green .hl__pill {
+    background: var(--c-dark);
+    color: var(--c-green);
+  }
+  .hl--black-green .hl__pill {
+    background: var(--c-black);
+    color: var(--c-green);
+  }
+</style>

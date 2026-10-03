@@ -1,0 +1,206 @@
+---
+/**
+ * Product page, Figma Item frame 5190:1434 (1440 x 3401). One page per entry
+ * of the `skins` collection. /skins/0003/ (Lightning) is the page compared
+ * with the Figma frame.
+ *
+ * Sections: nav bar 5190:1435, gallery (thumbnails + main view 5205:967),
+ * info 5205:982 + Buy now 7037:839, "You Might Also Like" 7094:816 with six
+ * cards, testimonials heading 7040:1059 + block 7040:1062, footer 7101:893.
+ * The footer uses the Home position and spacing (Figma Item has it at x 81
+ * with a 380px empty band above, inconsistent with Home: treated as a slip).
+ */
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import NavBar from '../../components/NavBar.astro';
+import ProductGallery from '../../components/ProductGallery.astro';
+import ProductInfo from '../../components/ProductInfo.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import SkinCard from '../../components/SkinCard.astro';
+import CrateCard from '../../components/CrateCard.astro';
+import Testimonials from '../../components/Testimonials.astro';
+import Footer from '../../components/Footer.astro';
+import { fillAlsoLike, ALSO_LIKE_LABEL_PREFIX } from '../../data/placements';
+
+export async function getStaticPaths() {
+  const skins = await getCollection('skins');
+  return skins.map((skin) => ({ params: { id: skin.id }, props: { skin } }));
+}
+
+interface Props {
+  skin: CollectionEntry<'skins'>;
+}
+
+const { skin } = Astro.props;
+const skins = await getCollection('skins');
+const byId = new Map(skins.map((s) => [s.id, s]));
+const slots = fillAlsoLike(
+  skin.id,
+  skins.map((s) => s.id),
+);
+const skinFor = (id: string) => {
+  const entry = byId.get(id);
+  if (!entry) throw new Error(`skins/[id]: unknown skin ${id} in "You Might Also Like"`);
+  return entry;
+};
+---
+
+<Base title={`/${skin.id} ${skin.data.name}`}>
+  <NavBar variant="bar" />
+  <main class="product-page">
+    <section class="product" aria-label={`/${skin.id} ${skin.data.name}`}>
+      <div class="product__gallery"><ProductGallery skin={skin} /></div>
+      <div class="product__info"><ProductInfo skin={skin} /></div>
+    </section>
+
+    <section class="also" aria-labelledby="also-like">
+      <div class="heading-row" data-figma="7094:816">
+        <SectionHeading title="You Might Also Like" id="also-like" />
+      </div>
+      <ul class="also__grid" role="list">
+        {
+          slots.map((slot) => (
+            <li class="also__cell" data-card>
+              {slot.kind === 'skin' ? (
+                <SkinCard
+                  skin={skinFor(slot.skin)}
+                  variant={slot.variant}
+                  tagline={slot.tagline}
+                  labelPrefix={ALSO_LIKE_LABEL_PREFIX}
+                  figma={slot.figma}
+                />
+              ) : (
+                <CrateCard figma={slot.figma} />
+              )}
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section class="words" aria-labelledby="customers">
+      <div class="heading-row" data-figma="7040:1059">
+        <SectionHeading title="A word from our customers" id="customers" />
+      </div>
+      <div class="words__slider"><Testimonials figma="7040:1062" /></div>
+    </section>
+  </main>
+  <div class="page-footer"><Footer figma="7101:893" /></div>
+</Base>
+
+<style>
+  /* Figma Item: nav bar ends at y 144, gallery and info start at y 199. */
+  .product {
+    display: flex;
+    align-items: flex-start;
+    width: var(--column);
+    margin: 55px auto 0;
+    /* Figma: thumbnails at x 103, 3px inside the 1240 column. */
+    padding-left: 3px;
+  }
+  .product__gallery {
+    flex: none;
+  }
+  /* Figma: info column at x 1005, 82px right of the main view. */
+  .product__info {
+    flex: none;
+    width: 267px;
+    margin-left: 82px;
+  }
+
+  /* Figma: main view ends at y 808, heading at 866, cards at 952. */
+  .also {
+    margin-top: 58px;
+  }
+  .also__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px 13px;
+    width: var(--column);
+    margin: 35px auto 0;
+    padding: 0;
+    list-style: none;
+  }
+  /* Figma card columns: 100 / 518 / 936 (row 1) and 103 / 519 / 938 (row 2);
+     a 1241 grid from x 101 keeps both rows within 2px. */
+  @media (min-width: 1240px) {
+    .also__grid {
+      grid-template-columns: repeat(3, 405px);
+      width: calc(var(--column) + 1px);
+      margin-left: calc((100% - var(--column)) / 2 + 1px);
+    }
+  }
+
+  /* Figma: cards end at y 1574, testimonials heading at 1735, block at 1841. */
+  .words {
+    margin-top: 161px;
+  }
+  .words__slider {
+    margin-top: 55px;
+  }
+  /* Home spacing between the testimonials block and the footer (69px). */
+  .page-footer {
+    margin-top: 69px;
+  }
+
+  @media (max-width: 1239px) {
+    .product {
+      padding-left: 0;
+    }
+    .product__gallery {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+    .product__info {
+      width: clamp(240px, 22vw, 267px);
+      margin-left: clamp(32px, 5vw, 82px);
+    }
+    .words {
+      margin-top: 120px;
+    }
+  }
+  @media (max-width: 1023px) {
+    .product {
+      flex-direction: column;
+      align-items: stretch;
+      margin-top: 40px;
+    }
+    .product__gallery {
+      flex: none;
+    }
+    .product__info {
+      width: auto;
+      margin: 48px 0 0;
+    }
+    .also__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .words {
+      margin-top: 96px;
+    }
+  }
+  @media (max-width: 767px) {
+    .product {
+      margin-top: 32px;
+    }
+    .product__info {
+      margin-top: 32px;
+    }
+    .also {
+      margin-top: 64px;
+    }
+    .also__grid {
+      grid-template-columns: minmax(0, 1fr);
+      margin-top: 24px;
+    }
+    .words {
+      margin-top: 72px;
+    }
+    .words__slider {
+      margin-top: 32px;
+    }
+    .page-footer {
+      margin-top: 48px;
+    }
+  }
+</style>

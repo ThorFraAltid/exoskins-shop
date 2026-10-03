@@ -1,0 +1,17 @@
+{
+  "name": "Gold",
+  "card": {
+    "kind": "image",
+    "src": "../../assets/skins/0002-card.png"
+  },
+  "gallery": {
+    "video": {
+      "src": "/media/skins/0002.mp4",
+      "poster": "/media/skins/0002-poster.jpg",
+      "width": 992,
+      "height": 924
+    },
+    "images": []
+  },
+  "amazonUrl": "https://www.amazon.com/"
+}

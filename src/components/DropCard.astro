@@ -1,0 +1,136 @@
+---
+import { Picture } from 'astro:assets';
+import HeadingLabel from './HeadingLabel.astro';
+import Button from './Button.astro';
+import { url } from '../lib/url';
+import { SUBSCRIBE_ANCHOR } from '../data/site';
+import type { DropSlot } from '../data/placements';
+import skull from '../assets/drops/skull.png';
+import dragon from '../assets/drops/dragon.png';
+
+/**
+ * "Dropping Soon" image card on the Home grid.
+ * - size 'wide':  skull card, Figma 5081:787 (1232 x 359): black, image cover,
+ *                 1px green border, radius 45, green bottom edge. Text block
+ *                 44px from the inner left edge, vertically centred.
+ * - size 'large': dragon card, Figma 5036:863 (822 x 633): the Figma wrapper
+ *                 clips the inner card's bottom edge shadow, so this card has
+ *                 the 1px border only. Text block 697 wide, centred, padding
+ *                 50 / 10.
+ * Images: the visible crop of the Figma fill images (skull 3500 x 3500, dragon
+ * 3136 x 1376), exported from those nodes; the skull's transparent corners are
+ * flattened on the card's black. The dragon's second, fully covered layer
+ * ("ex 1") is not shipped.
+ * Text (heading, copy, CTA) comes from the slot, verbatim from Figma. The CTA
+ * links to the footer subscribe form (PLAN.md).
+ *
+ * Props
+ * - drop:     DropSlot from src/data/placements.ts (not `slot`: reserved in Astro)
+ * - loading?: 'lazy' | 'eager' (default 'lazy')
+ * - class?:   string
+ *
+ * Size: fills its grid area (InventoryGrid sets the size per breakpoint).
+ */
+interface Props {
+  drop: DropSlot;
+  loading?: 'lazy' | 'eager';
+  class?: string;
+}
+
+const { drop, loading = 'lazy', class: className } = Astro.props;
+const image = drop.size === 'wide' ? skull : dragon;
+const sizes =
+  drop.size === 'wide'
+    ? '(max-width: 1239px) calc(100vw - 32px), 1230px'
+    : '(max-width: 1023px) calc(100vw - 32px), (max-width: 1239px) 66vw, 820px';
+---
+
+<article class:list={['drop', `drop--${drop.size}`, className]} data-figma={drop.figma}>
+  <div class="drop__media" aria-hidden="true">
+    <Picture
+      src={image}
+      alt=""
+      formats={['avif', 'webp']}
+      widths={drop.size === 'wide' ? [615, 1230] : [410, 820]}
+      sizes={sizes}
+      loading={loading}
+      decoding="async"
+    />
+  </div>
+  <div class="drop__text">
+    <HeadingLabel lines={drop.heading} as="h3" size="h3" tone="green" />
+    <p class="drop__copy">{drop.text}</p>
+    <Button variant="primary" href={url(SUBSCRIBE_ANCHOR)}>{drop.cta}</Button>
+  </div>
+</article>
+
+<style>
+  .drop {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    overflow: clip;
+    background: var(--c-black);
+    border: var(--border);
+    border-radius: var(--r-card);
+  }
+  .drop--wide {
+    padding-left: 44px;
+    box-shadow: var(--edge);
+  }
+  .drop--large {
+    justify-content: center;
+    padding: 50px 10px;
+  }
+  .drop__media {
+    position: absolute;
+    inset: 0;
+  }
+  .drop__media :global(picture) {
+    height: 100%;
+  }
+  .drop__media :global(img) {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+  }
+  .drop__text {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 26px;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .drop--large .drop__text {
+    width: 697px;
+    max-width: 100%;
+  }
+  .drop__copy {
+    width: 500px;
+    max-width: 100%;
+    color: var(--c-green);
+    font-size: var(--fs-p);
+    line-height: var(--lh-auto);
+  }
+
+  @media (max-width: 1239px) {
+    .drop--large {
+      justify-content: flex-start;
+      padding-left: 44px;
+    }
+  }
+  @media (max-width: 767px) {
+    .drop--wide,
+    .drop--large {
+      padding-left: 24px;
+    }
+    .drop__text {
+      gap: 20px;
+    }
+  }
+</style>

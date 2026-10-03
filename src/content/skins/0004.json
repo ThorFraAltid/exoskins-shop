@@ -1,0 +1,15 @@
+{
+  "name": "Teal/pink fade",
+  "card": {
+    "kind": "image",
+    "src": "../../assets/skins/0004-card.png"
+  },
+  "gallery": {
+    "images": [
+      {
+        "src": "../../assets/skins/0004-card.png"
+      }
+    ]
+  },
+  "amazonUrl": "https://www.amazon.com/"
+}
