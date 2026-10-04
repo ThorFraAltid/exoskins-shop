@@ -23,7 +23,14 @@ import { url } from '../lib/url';
 const usp = (file: string) => url(`media/usp/${file}`);
 ---
 
-<div class="hero" data-figma="7102:807">
+<script is:inline>
+  // Before first paint: enable motion, and the intro once per session.
+  if (matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+    document.documentElement.classList.add('motion');
+    if (!sessionStorage.getItem('exoIntroSeen')) document.documentElement.classList.add('intro');
+  }
+</script>
+<div class="hero" data-figma="7102:807" data-hero>
   <div class="hero__nav">
     <NavBar variant="hero" />
   </div>
@@ -250,9 +257,29 @@ const usp = (file: string) => url(`media/usp/${file}`);
     .hero {
       margin-top: 16px;
     }
+    /* Phone: the box fills the first screen down to "Featured at", so the
+       video (cropped at the sides, its subject is centred) can be large. */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      min-height: calc(100vh - 150px);
+      min-height: calc(100svh - 150px);
+    }
     .hero__nav {
       position: static;
       padding-top: 12px;
+    }
+    .hero__stage {
+      flex: 1;
+    }
+    .hero__media {
+      flex: 1;
+      aspect-ratio: auto;
+      min-height: 56.25vw;
+    }
+    .hero__video {
+      position: absolute;
+      inset: 0;
     }
     .hero__stage {
       /* shrink the labels when two of them do not fit side by side (< 390) */

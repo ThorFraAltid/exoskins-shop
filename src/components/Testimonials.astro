@@ -1,4 +1,5 @@
 ---
+import '@fontsource/space-grotesk/700.css';
 import { getCollection } from 'astro:content';
 
 /**
@@ -32,6 +33,12 @@ const {
 } = Astro.props;
 
 const items = (await getCollection('testimonials')).sort((a, b) => a.data.order - b.data.order);
+
+/** Quote text with **emphasis** split into plain and strong parts. */
+const parts = (quote: string) =>
+  quote.split(/(\*\*[^*]+\*\*)/).filter(Boolean).map((part) =>
+    part.startsWith('**') ? { strong: true, text: part.slice(2, -2) } : { strong: false, text: part },
+  );
 if (items.length === 0) {
   throw new Error('Testimonials: the testimonials collection is empty');
 }
@@ -69,7 +76,11 @@ const last = items.length - 1;
           >
             <figure class="testimonials__card">
               <blockquote class="testimonials__bubble">
-                <p>{item.data.quote}</p>
+                <p>
+                  {parts(item.data.quote).map((part) =>
+                    part.strong ? <strong>{part.text}</strong> : part.text,
+                  )}
+                </p>
                 <svg
                   class="testimonials__tail"
                   width="53.2774"
@@ -196,6 +207,9 @@ const last = items.length - 1;
     font-size: var(--fs-p);
     line-height: var(--lh-p);
   }
+  .testimonials__bubble strong {
+    font-weight: 700;
+  }
   .testimonials__tail {
     position: absolute;
     top: 100%;
@@ -302,7 +316,7 @@ const last = items.length - 1;
       --pad-x: 40px;
       --pad-top: 40px;
       --who-pad: 56px;
-      --tail-x: 40px;
+      --tail-x: 48px;
     }
   }
   @media (max-width: 767px) {
@@ -311,8 +325,8 @@ const last = items.length - 1;
       --gap: 16px;
       --pad-x: 24px;
       --pad-top: 28px;
-      --who-pad: 24px;
-      --tail-x: 24px;
+      --who-pad: 48px;
+      --tail-x: 48px;
       padding-block: 40px;
       border-radius: var(--r-card);
     }
@@ -360,6 +374,34 @@ const last = items.length - 1;
       prev.disabled = index === 0;
       next.disabled = index === last;
     };
+
+    // Auto-advance while the slider is on screen, until the visitor touches,
+    // clicks, focuses or uses the keyboard on it. Never with reduced motion.
+    const AUTO_MS = 5000;
+    let timer: number | undefined;
+    let userTookOver = false;
+    const stopAuto = () => {
+      window.clearInterval(timer);
+      timer = undefined;
+    };
+    const takeOver = () => {
+      userTookOver = true;
+      stopAuto();
+    };
+    for (const type of ['pointerdown', 'keydown', 'focusin'] as const) {
+      root.addEventListener(type, takeOver, { passive: true });
+    }
+    if (window.matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+      new IntersectionObserver(
+        ([entry]) => {
+          stopAuto();
+          if (entry!.isIntersecting && !userTookOver) {
+            timer = window.setInterval(() => go(index === last ? 0 : index + 1), AUTO_MS);
+          }
+        },
+        { threshold: 0.4 },
+      ).observe(root);
+    }
 
     prev.addEventListener('click', () => go(index - 1));
     next.addEventListener('click', () => go(index + 1));
