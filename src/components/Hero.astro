@@ -33,10 +33,11 @@ const usp = (file: string) => url(`media/usp/${file}`);
         class="hero__video"
         width="1920"
         height="1080"
+        autoplay
         muted
         loop
         playsinline
-        preload="none"
+        preload="metadata"
         poster={url('media/hero-poster.jpg')}
         tabindex="-1"
         data-hero-video
@@ -275,11 +276,16 @@ const usp = (file: string) => url(`media/usp/${file}`);
   }
   const motionAllowed = window.matchMedia('(prefers-reduced-motion: no-preference)');
 
+  // The autoplay attribute starts the video on iOS (WebKit rejects a scripted
+  // play() on a video without it). With reduced motion the attribute is removed
+  // and the video stays on its poster.
   const sync = () => {
     if (!motionAllowed.matches) {
+      video.autoplay = false;
       video.pause();
       return;
     }
+    video.autoplay = true;
     video.play().catch((error: unknown) => {
       // NotAllowedError: the browser refuses playback (e.g. battery saver), the
       // poster stays, which is the designed still state. AbortError: a pause()
@@ -296,4 +302,10 @@ const usp = (file: string) => url(`media/usp/${file}`);
 
   sync();
   motionAllowed.addEventListener('change', sync);
+  // Browsers that refuse the first attempt (WebKit before data has loaded, iOS
+  // Low Power Mode until the visitor touches the page) get another one.
+  video.addEventListener('canplay', sync, { once: true });
+  for (const type of ['touchend', 'click'] as const) {
+    document.addEventListener(type, () => video.paused && sync(), { once: true, passive: true });
+  }
 </script>

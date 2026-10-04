@@ -114,10 +114,11 @@ const thumbLabel = (m: Media, i: number) =>
           {m.kind === 'video' ? (
             <video
               class="gallery__video"
+              autoplay={i === 0}
               muted
               loop
               playsinline
-              preload="none"
+              preload="metadata"
               poster={url(m.poster)}
               width={m.width}
               height={m.height}
@@ -341,11 +342,14 @@ const thumbLabel = (m: Media, i: number) =>
       const video = videoAt(active);
       if (!video) return;
       if (inView && !reduceMotion.matches) {
+        video.autoplay = true;
         video.play().catch((error: DOMException) => {
-          // A pause() before playback starts rejects play() with AbortError: expected.
-          if (error.name !== 'AbortError') throw error;
+          // AbortError: a pause() interrupted the pending play(). NotAllowedError:
+          // the browser refuses playback (e.g. battery saver), the poster stays.
+          if (error.name !== 'AbortError' && error.name !== 'NotAllowedError') throw error;
         });
       } else {
+        video.autoplay = false;
         video.pause();
       }
     };
@@ -391,5 +395,12 @@ const thumbLabel = (m: Media, i: number) =>
       { threshold: 0.25 },
     ).observe(main);
     reduceMotion.addEventListener('change', syncVideo);
+    // Retry when data has loaded and on the first touch (see Hero.astro).
+    for (const video of root.querySelectorAll('video')) {
+      video.addEventListener('canplay', syncVideo, { once: true });
+    }
+    for (const type of ['touchend', 'click'] as const) {
+      document.addEventListener(type, syncVideo, { once: true, passive: true });
+    }
   }
 </script>

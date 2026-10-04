@@ -56,5 +56,8 @@ const ogImageUrl = new URL(url(ogImage), Astro.site).href;
   </head>
   <body>
     <slot />
+    <script>
+      import '../scripts/motion';
+    </script>
   </body>
 </html>
