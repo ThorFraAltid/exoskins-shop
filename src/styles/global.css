@@ -195,9 +195,10 @@ body.is-scroll-locked {
 /*
  * USP loop (hero labels): one label at a time, every 4s. Its icon moves the way
  * the thing it names would, then the name is typed out; the others rest.
+ * Nothing clips a moving icon (Hero.astro), and every icon ends exactly on its
+ * Figma artwork.
  */
-.motion .usp .usp__ico,
-.motion .usp .usp__txt {
+.motion .usp :is(.usp__ico, .usp__txt, .usp__anim, .usp__part) {
   animation-duration: 16s;
   animation-iteration-count: infinite;
 }
@@ -205,8 +206,7 @@ body.is-scroll-locked {
 .motion .usp--2 { --usp-delay: 4.6s; }
 .motion .usp--3 { --usp-delay: 8.6s; }
 .motion .usp--4 { --usp-delay: 12.6s; }
-.motion .usp .usp__ico,
-.motion .usp .usp__txt {
+.motion .usp :is(.usp__ico, .usp__txt, .usp__anim, .usp__part) {
   animation-delay: var(--usp-delay);
 }
 .motion .usp .usp__txt {
@@ -227,38 +227,88 @@ body.is-scroll-locked {
     clip-path: inset(0 0 0 var(--split, 0%));
   }
 }
-.motion .usp--1 .usp__ico { animation-name: usp-aim; }
-.motion .usp--2 .usp__ico { animation-name: usp-shake; }
+.motion .usp--1 .usp__ico { animation-name: usp-aim; transform-origin: 14.48% 50%; }
 .motion .usp--3 .usp__ico { animation-name: usp-cut; }
-.motion .usp--4 .usp__ico { animation-name: usp-thin; transform-origin: 50% 100%; }
-/* crosshair: turns and settles like taking aim */
+.motion .usp--2 .usp__ico,
+.motion .usp--4 .usp__ico { animation-name: usp-hide; }
+.motion .usp__anim { animation-name: usp-show; }
+.motion .usp__dia2 { animation-name: usp-dia2; }
+.motion .usp__dia3 { animation-name: usp-dia3; }
+.motion .usp__edge { animation-name: usp-edge; }
+.motion .usp__flap { animation-name: usp-flap; }
+.motion .usp__crease { animation-name: usp-crease; }
+/* crosshair (turned about its own centre): half a turn, which looks the same,
+   growing as it turns, then settles on target */
 @keyframes usp-aim {
-  0% { rotate: 0deg; scale: 1; animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1); }
-  4% { rotate: 150deg; scale: 1.2; }
-  7%, 100% { rotate: 180deg; scale: 1; }
-}
-/* droplets: shaken off */
-@keyframes usp-shake {
-  0% { translate: 0 0; rotate: 0deg; }
-  1.5% { translate: -3px 0; rotate: -8deg; }
-  3% { translate: 3px 0; rotate: 8deg; }
-  4.5% { translate: -2px 0; rotate: -4deg; }
-  6% { translate: 1px 0; rotate: 2deg; }
-  7%, 100% { translate: 0 0; rotate: 0deg; }
+  0% { rotate: -180deg; scale: 1; animation-timing-function: cubic-bezier(0.45, 0, 0.25, 1); }
+  4.5% { rotate: 10deg; scale: 1.12; animation-timing-function: cubic-bezier(0.35, 0, 0.35, 1); }
+  7%, 100% { rotate: 0deg; scale: 1; }
 }
 /* arrow: slices in along its own diagonal */
 @keyframes usp-cut {
-  0% { translate: 0 0; opacity: 1; }
-  0.3% { translate: -12px -12px; opacity: 0; animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1); }
-  5% { translate: 2px 2px; opacity: 1; }
+  0% {
+    translate: calc(-14 * var(--u)) calc(-14 * var(--u));
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  2.5% { opacity: 1; }
+  5% { translate: calc(1.5 * var(--u)) calc(1.5 * var(--u)); animation-timing-function: ease-in-out; }
   7%, 100% { translate: 0 0; opacity: 1; }
 }
-/* sheet: pressed flat, then springs back */
-@keyframes usp-thin {
-  0% { scale: 1 1; }
-  2.5% { scale: 1.06 0.12; }
-  5% { scale: 0.98 1.08; }
-  7%, 100% { scale: 1 1; }
+/* icons 2 and 4: the inline copy stands in for the image while its parts move,
+   and ends exactly on the artwork, so the swap back is invisible */
+@keyframes usp-hide {
+  0%, 7% { visibility: hidden; }
+  7.1%, 100% { visibility: visible; }
+}
+@keyframes usp-show {
+  0%, 7% { visibility: visible; }
+  7.1%, 100% { visibility: hidden; }
+}
+/* diamonds: the two outlined ones start tucked behind the white one (scaled
+   just inside it) and slide out to the right, one after the other */
+.usp__dia2,
+.usp__dia3 {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes usp-dia2 {
+  0%, 0.8% { translate: -9.7004px 0; scale: 0.9; animation-timing-function: cubic-bezier(0.5, 0, 0.15, 1); }
+  4.5%, 100% { translate: 0 0; scale: 1; }
+}
+@keyframes usp-dia3 {
+  0%, 2.2% { translate: -18.9173px 0; scale: 0.9; animation-timing-function: cubic-bezier(0.5, 0, 0.15, 1); }
+  6.5%, 100% { translate: 0 0; scale: 1; }
+}
+/* sheet: starts as a plain square (the copy's outline is split into the outer
+   edges and the crease, the corner's own edges are extra rects), then the
+   corner folds up: the white flap grows from the corner along the diagonal
+   while the edges it takes shrink away, and the crease appears as it lands */
+.usp__flap {
+  transform-origin: 39.9917px 39.2481px;
+}
+.usp__edge {
+  transform-box: fill-box;
+}
+.usp__edge--r {
+  --folded: 1 0;
+  transform-origin: 50% 0;
+}
+.usp__edge--b {
+  --folded: 0 1;
+  transform-origin: 0 50%;
+}
+@keyframes usp-flap {
+  0%, 1.5% { scale: 0; animation-timing-function: cubic-bezier(0.5, 0, 0.2, 1); }
+  6%, 100% { scale: 1; }
+}
+@keyframes usp-edge {
+  0%, 1.5% { scale: 1; animation-timing-function: cubic-bezier(0.5, 0, 0.2, 1); }
+  6%, 100% { scale: var(--folded); }
+}
+@keyframes usp-crease {
+  0%, 4% { opacity: 0; }
+  6%, 100% { opacity: 1; }
 }
 
 /* Typewriter: id labels (/FD0005, /0003) are typed out character by character. */
