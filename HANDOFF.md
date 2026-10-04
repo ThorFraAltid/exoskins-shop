@@ -57,7 +57,7 @@ Not in Simon's Figma file; he has not seen these.
 - Motion: home intro (video, then logo, frame, rest), scroll reveal, floating card images, typewriter id labels, looping hero label animations, skull zoom, dragon flow, lightning on the Lightning skin card, smooth in-page scrolling. All off with reduced motion.
 - FAQ section on Home (`src/data/faq.ts`). The five answers are a draft written from the brief and the site's own labels. Simon must approve or replace them.
 - Testimonials: five instead of three, shortened, with bold emphasis, looping and auto-advancing. Four of the five are placeholders (John Smith and three "Navn Navnesen"); `check:launch` blocks on them. Rune's quote is a shortened version of his original and needs his approval.
-- Dragon card: the motion is a shader that slides the scale texture around the coil of the still image. A real moving snake needs a video or animated render (the Pika account had 0 credits).
+- Dragon card: plays a looping video of the snake slithering (`public/media/drops/dragon.mp4`), generated from Simon's still with an image-to-video model (Wan 2.2 first/last frame on Hugging Face, free tier) and slowed with frame interpolation. The still image shows until the video plays and for visitors with reduced motion. Mid-loop frames are motion-blurred; a sharper take can be generated when the free quota resets.
 - Mobile: larger hero, menu opens under the fixed logo and button.
 
 ## Where the site differs from Figma, on purpose

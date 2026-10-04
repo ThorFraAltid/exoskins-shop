@@ -46,7 +46,7 @@ const sizes =
 ---
 
 <article class:list={['drop', `drop--${drop.size}`, className]} data-figma={drop.figma}>
-  <div class="drop__media" aria-hidden="true" data-fx={drop.size === 'large' ? 'flow' : undefined}>
+  <div class="drop__media" aria-hidden="true">
     <Picture
       src={image}
       alt=""
@@ -56,6 +56,22 @@ const sizes =
       loading={loading}
       decoding="async"
     />
+    {
+      drop.size === 'large' && (
+        <video
+          class="drop__video"
+          muted
+          loop
+          playsinline
+          preload="none"
+          poster={url('media/drops/dragon-poster.jpg')}
+          tabindex="-1"
+          data-drop-video
+        >
+          <source src={url('media/drops/dragon.mp4')} type="video/mp4" />
+        </video>
+      )
+    }
   </div>
   <div class="drop__text">
     <HeadingLabel lines={drop.heading} as="h3" size="h3" tone="green" />
@@ -97,11 +113,19 @@ const sizes =
     max-width: none;
     object-fit: cover;
   }
-  .drop__media :global(canvas) {
+  /* Dragon loop: lies over the still image and fades in once it plays, so the
+     still shows until then (and always with reduced motion). */
+  .drop__video {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 600ms var(--ease);
+  }
+  .drop__video.is-playing {
+    opacity: 1;
   }
   .drop__text {
     position: relative;
@@ -140,3 +164,36 @@ const sizes =
     }
   }
 </style>
+
+<script>
+  // The dragon video plays only while its card is on screen and the visitor
+  // allows motion. `autoplay` is set here because WebKit refuses a scripted
+  // play() on a video without that attribute.
+  const motionAllowed = window.matchMedia('(prefers-reduced-motion: no-preference)');
+  for (const video of document.querySelectorAll<HTMLVideoElement>('[data-drop-video]')) {
+    let inView = false;
+    const sync = () => {
+      if (inView && motionAllowed.matches) {
+        video.autoplay = true;
+        video.play().catch((error: DOMException) => {
+          // AbortError: a pause() interrupted the pending play(). NotAllowedError:
+          // the browser refuses playback (e.g. battery saver); the still stays.
+          if (error.name !== 'AbortError' && error.name !== 'NotAllowedError') throw error;
+        });
+      } else {
+        video.autoplay = false;
+        video.pause();
+      }
+    };
+    video.addEventListener('playing', () => video.classList.add('is-playing'));
+    new IntersectionObserver(([entry]) => {
+      inView = entry!.isIntersecting;
+      sync();
+    }).observe(video);
+    motionAllowed.addEventListener('change', sync);
+    video.addEventListener('canplay', sync, { once: true });
+    for (const type of ['touchend', 'click'] as const) {
+      document.addEventListener(type, sync, { once: true, passive: true });
+    }
+  }
+</script>
