@@ -1,17 +1,41 @@
 {
-  "name": "Gold",
+  "name": "QueenGambit",
   "card": {
     "kind": "image",
-    "src": "../../assets/skins/0002-card.png"
+    "src": "../../assets/skins/0002/shot.png"
   },
   "gallery": {
     "video": {
       "src": "/media/skins/0002.mp4",
       "poster": "/media/skins/0002-poster.jpg",
-      "width": 992,
-      "height": 924
+      "width": 898,
+      "height": 754
     },
-    "images": []
+    "images": [
+      {
+        "src": "../../assets/skins/0002/shot.png"
+      },
+      {
+        "src": "../../assets/skins/0002/still-2.jpg",
+        "main": "cover",
+        "thumbPlacement": "cover"
+      },
+      {
+        "src": "../../assets/skins/0002/pattern.png",
+        "main": {
+          "x": 9.85,
+          "y": 8,
+          "w": 80.3,
+          "h": 84
+        },
+        "thumbPlacement": {
+          "x": 10.05,
+          "y": 8,
+          "w": 79.9,
+          "h": 84
+        }
+      }
+    ]
   },
   "amazonUrl": "https://www.amazon.com/"
 }

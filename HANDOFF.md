@@ -35,6 +35,21 @@ bun run check:launch   # lists what blocks going live
 9. Hero. Figma shows a still of three mice; the hero plays the crate animation from the live site instead, fitted above the label row with soft edges.
 10. Favicon is the logo pill cut from the icon sheet. A square icon would look better.
 
+## Skins (updated 4 Oct 2026)
+
+Six skins, named after Simon's own pattern files in `AI-Skins-tests/Plano-Skins`:
+
+| id | Skin | Media on the product page |
+|---|---|---|
+| 0001 | NeoQueen | video `0001.mp4` (white frame cropped off), Simon's product shot, a still from the video, flat pattern |
+| 0002 | QueenGambit | video `0002.mp4` (cropped), Simon's product shot (`queen.png`), a still, flat pattern |
+| 0003 | Lightning | the four Figma gallery images; lightning effect on the Home card and the first product image only |
+| 0004 | Fade | Figma render, flat pattern |
+| 0005 | Doppler | Figma render, flat pattern |
+| 0006 | NightWish | Figma render (the swirl mouse on the Home grid), flat pattern |
+
+This replaces the earlier five-skin mapping in this file and in PLAN.md: the Home grid's six skin slots now hold six different skins. Ids and which skin gets which id are still Thor's assumption (video file names for 0001 and 0002); Simon should confirm.
+
 ## Added after the Figma build (Thor's requests, 4 Oct 2026)
 
 Not in Simon's Figma file; he has not seen these.

@@ -1,13 +1,28 @@
 {
-  "name": "Teal/pink fade",
+  "name": "Fade",
   "card": {
     "kind": "image",
-    "src": "../../assets/skins/0004-card.png"
+    "src": "../../assets/skins/0004/render.png"
   },
   "gallery": {
     "images": [
       {
-        "src": "../../assets/skins/0004-card.png"
+        "src": "../../assets/skins/0004/render.png"
+      },
+      {
+        "src": "../../assets/skins/0004/pattern.png",
+        "main": {
+          "x": 9.85,
+          "y": 8,
+          "w": 80.3,
+          "h": 84
+        },
+        "thumbPlacement": {
+          "x": 10.05,
+          "y": 8,
+          "w": 79.9,
+          "h": 84
+        }
       }
     ]
   },

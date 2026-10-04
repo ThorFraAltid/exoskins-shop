@@ -1,16 +1,16 @@
 {
-  "name": "Doppler",
+  "name": "NightWish",
   "card": {
     "kind": "image",
-    "src": "../../assets/skins/0005/render.png"
+    "src": "../../assets/skins/0006/render.png"
   },
   "gallery": {
     "images": [
       {
-        "src": "../../assets/skins/0005/render.png"
+        "src": "../../assets/skins/0006/render.png"
       },
       {
-        "src": "../../assets/skins/0005/pattern.png",
+        "src": "../../assets/skins/0006/pattern.png",
         "main": {
           "x": 9.85,
           "y": 8,

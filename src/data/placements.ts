@@ -67,10 +67,9 @@ export const homeGrid: HomeSlot[] = [
   { kind: 'skin', figma: '5081:800', variant: 'light', tagline: KNIFE, skin: '0003' },
   { kind: 'crate', figma: '5081:807' },
   { kind: 'skin', figma: '5081:793', variant: 'black', tagline: KNIFE, skin: '0002' },
-  { kind: 'skin', figma: '5036:1177', variant: 'black', tagline: KNIFE, skin: '0001' },
+  { kind: 'skin', figma: '5036:1177', variant: 'black', tagline: KNIFE, skin: '0006' },
   drop('5036:863', 'large'),
-  // 5 skins, 6 skin slots: repeats until skin 6 exists (PLAN.md).
-  { kind: 'skin', figma: '5081:837', variant: 'light', tagline: KNIFE, skin: '0004' },
+  { kind: 'skin', figma: '5081:837', variant: 'light', tagline: KNIFE, skin: '0001' },
 ];
 
 /** "You Might Also Like" (Item frame), Figma order. Card label: "/" + skin id. */

@@ -18,8 +18,7 @@
         "fxMask": "/media/skins/0003-mask-1.png"
       },
       {
-        "src": "../../assets/skins/0003/2.png",
-        "fxMask": "/media/skins/0003-mask-2.png"
+        "src": "../../assets/skins/0003/2.png"
       },
       {
         "src": "../../assets/skins/0003/4.png",
@@ -28,8 +27,7 @@
           "y": -15.263,
           "w": 153.242,
           "h": 161.42
-        },
-        "fxMask": "/media/skins/0003-mask-4.png"
+        }
       },
       {
         "src": "../../assets/skins/0003/pattern.png",

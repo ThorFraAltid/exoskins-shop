@@ -32,12 +32,23 @@ interface Props {
   labelPrefix: string;
   figma?: string;
   loading?: 'lazy' | 'eager';
+  /** Draw the skin's live effect (lightning) on the card. Home only; default true. */
+  effects?: boolean;
   class?: string;
 }
 
-const { skin, variant, tagline, labelPrefix, figma, loading = 'lazy', class: className } =
-  Astro.props;
-const { card, name, effect } = skin.data;
+const {
+  skin,
+  variant,
+  tagline,
+  labelPrefix,
+  figma,
+  loading = 'lazy',
+  effects = true,
+  class: className,
+} = Astro.props;
+const { card, name } = skin.data;
+const effect = effects ? skin.data.effect : undefined;
 const label = `${labelPrefix}${skin.id}`;
 const href = url(`skins/${skin.id}/`);
 ---

@@ -1,7 +1,7 @@
 /**
  * Canvas effects, started by motion.ts only when the visitor allows motion.
- * - [data-fx="flow"]: the image's texture glides around a centre in an endless
- *   loop (WebGL), used on the dragon card so the body moves through its coil.
+ * - [data-fx="flow"]: waves of bends travel along the coiled body in the image
+ *   in an endless loop (WebGL), used on the dragon card so the snake slithers.
  * - canvas[data-fx="lightning"]: bolts flash across the canvas; the element's
  *   CSS mask limits them to the skin area of the mouse.
  * Every effect only runs while its element is on screen.
@@ -31,12 +31,15 @@ void main() {
 }`;
 
 /**
- * Two copies of the texture are rotated around the coil centre, half a cycle
- * apart, and cross-faded so each copy resets while it is invisible: the scales
- * travel along the body forever without the picture ever turning.
+ * The picture is a coiled body. The scales slide along the coil (around its
+ * centre), like a snake pulling its body through the loop. Two copies of the
+ * image are used, each sliding two scale-lengths per cycle and half a cycle
+ * apart, so they are always exactly one scale-length from each other and can
+ * be cross-faded while one of them jumps back: the slide never ends. Only the
+ * inside of the body slides; its outline and spikes are the still image.
  */
 const FLOW_FRAGMENT = `
-precision mediump float;
+precision highp float;
 varying vec2 uv;
 uniform sampler2D tex;
 uniform float time;
@@ -44,9 +47,9 @@ uniform vec2 boxSize;
 uniform vec2 imgSize;
 
 const vec2 CENTRE = vec2(0.47, 0.50);   // coil centre in the image
-const float CYCLE = 3.2;                // seconds per cross-fade cycle
-const float SWEEP = 0.16;               // radians travelled per cycle (more = ghosting)
-const float ZOOM = 1.10;                // keeps rotated samples inside the image
+const float PITCH = 0.057;              // one scale-length along the body (image heights)
+const float CYCLE = 2.6;                // seconds per cross-fade cycle
+const float ZOOM = 1.06;                // keeps shifted samples inside the image
 
 vec2 coverUv(vec2 p) {
   // object-fit: cover
@@ -56,13 +59,13 @@ vec2 coverUv(vec2 p) {
   return (p - 0.5) * scale / ZOOM + 0.5;
 }
 
-vec4 sampleRotated(vec2 p, float angle) {
+vec4 slid(vec2 p, float pitches) {
   float aspect = imgSize.x / imgSize.y;
   vec2 d = p - CENTRE;
   d.x *= aspect;
-  // the body undulates a little as it moves
   float r = length(d);
-  angle += 0.035 * sin(3.0 * atan(d.y, d.x) + 9.0 * r - time * 1.3);
+  // arc length -> angle; no movement at the very centre
+  float angle = pitches * PITCH / max(r, 0.12) * smoothstep(0.05, 0.2, r);
   float c = cos(angle);
   float s = sin(angle);
   d = vec2(c * d.x - s * d.y, s * d.x + c * d.y);
@@ -70,12 +73,32 @@ vec4 sampleRotated(vec2 p, float angle) {
   return texture2D(tex, clamp(CENTRE + d, 0.0, 1.0));
 }
 
+// 1 on the body, 0 on the white background
+float body(vec4 c) {
+  return 1.0 - smoothstep(0.72, 0.92, min(c.r, min(c.g, c.b)));
+}
+
+// How far inside the body this point is: 0 at the outline (and its spikes),
+// 1 well inside. Only the inside slides, so the outline never moves.
+float inside(vec2 p) {
+  float m = 1.0;
+  for (int i = 0; i < 8; i++) {
+    float a = float(i) * 0.7853982;
+    m = min(m, body(texture2D(tex, clamp(p + vec2(cos(a), sin(a)) * 0.022, 0.0, 1.0))));
+  }
+  return m;
+}
+
 void main() {
   vec2 p = coverUv(vec2(uv.x, 1.0 - uv.y));
+  vec4 still = texture2D(tex, clamp(p, 0.0, 1.0));
+  float keep = inside(p);
   float phaseA = fract(time / CYCLE);
   float phaseB = fract(time / CYCLE + 0.5);
-  vec4 a = sampleRotated(p, (phaseA - 0.5) * SWEEP);
-  vec4 b = sampleRotated(p, (phaseB - 0.5) * SWEEP);
+  vec4 a = slid(p, (phaseA - 0.5) * 2.0);
+  vec4 b = slid(p, (phaseB - 0.5) * 2.0);
+  a = mix(still, a, keep * body(a));
+  b = mix(still, b, keep * body(b));
   gl_FragColor = mix(a, b, abs(1.0 - 2.0 * phaseA));
 }`;
 

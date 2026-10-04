@@ -1,14 +1,41 @@
 {
-  "name": "Graffiti",
-  "card": { "kind": "image", "src": "../../assets/skins/0001-card.png" },
+  "name": "NeoQueen",
+  "card": {
+    "kind": "image",
+    "src": "../../assets/skins/0001/shot.png"
+  },
   "gallery": {
     "video": {
       "src": "/media/skins/0001.mp4",
       "poster": "/media/skins/0001-poster.jpg",
       "width": 1274,
-      "height": 1186
+      "height": 1070
     },
-    "images": []
+    "images": [
+      {
+        "src": "../../assets/skins/0001/shot.png"
+      },
+      {
+        "src": "../../assets/skins/0001/still-2.jpg",
+        "main": "cover",
+        "thumbPlacement": "cover"
+      },
+      {
+        "src": "../../assets/skins/0001/pattern.png",
+        "main": {
+          "x": 9.85,
+          "y": 8,
+          "w": 80.3,
+          "h": 84
+        },
+        "thumbPlacement": {
+          "x": 10.05,
+          "y": 8,
+          "w": 79.9,
+          "h": 84
+        }
+      }
+    ]
   },
   "amazonUrl": "https://www.amazon.com/"
 }
