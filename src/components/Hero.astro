@@ -24,10 +24,9 @@ const usp = (file: string) => url(`media/usp/${file}`);
 ---
 
 <script is:inline>
-  // Before first paint: enable motion, and the intro on every direct load or
-  // reload (not when arriving from another page of this site).
+  // Before first paint (Base.astro has already set .motion): the intro on every
+  // direct load or reload (not when arriving from another page of this site).
   if (matchMedia('(prefers-reduced-motion: no-preference)').matches) {
-    document.documentElement.classList.add('motion');
     var nav = performance.getEntriesByType('navigation')[0];
     var internal = document.referrer && new URL(document.referrer).origin === location.origin;
     if (!internal || (nav && nav.type === 'reload')) document.documentElement.classList.add('intro');

@@ -1,0 +1,256 @@
+---
+/**
+ * Privacy Policy (/privacy/). No Figma frame: nav bar as on the Item page,
+ * Heading pill, a reading column of at most 70 characters, the site's type
+ * scale, footer. From 1024px a contents card (the card language: radius 45,
+ * 1px green border, 5px green edge) stays beside the text; below that it sits
+ * between the intro and the text. Text: src/data/privacy.ts (a draft, not
+ * legal advice).
+ */
+import Base from '../layouts/Base.astro';
+import NavBar from '../components/NavBar.astro';
+import HeadingLabel from '../components/HeadingLabel.astro';
+import Footer from '../components/Footer.astro';
+import {
+  PRIVACY_TITLE,
+  PRIVACY_DESCRIPTION,
+  PRIVACY_UPDATED,
+  PRIVACY_INTRO,
+  PRIVACY_SECTIONS,
+} from '../data/privacy';
+
+type Part = { text: string; href?: string };
+const LINK = /\[([^\]]+)\]\(([^)\s]+)\)/g;
+
+/** Splits "text [label](href) text" into text and link parts. */
+function parts(text: string): Part[] {
+  const out: Part[] = [];
+  let last = 0;
+  for (const match of text.matchAll(LINK)) {
+    const [whole, label, href] = match;
+    if (!/^(https:|mailto:|tel:)/.test(href!)) {
+      throw new Error(`privacy: link "${href}" must be https:, mailto: or tel:`);
+    }
+    if (match.index > last) out.push({ text: text.slice(last, match.index) });
+    out.push({ text: label!, href });
+    last = match.index + whole.length;
+  }
+  if (last < text.length) out.push({ text: text.slice(last) });
+  return out;
+}
+
+const slug = (heading: string) => heading.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const num = (i: number) => String(i + 1).padStart(2, '0');
+---
+
+<Base title={PRIVACY_TITLE} description={PRIVACY_DESCRIPTION}>
+  <NavBar variant="bar" />
+  <main class="privacy column">
+    <header class="privacy__head">
+      <HeadingLabel lines={PRIVACY_TITLE} as="h1" size="h2" tone="green" />
+      <p class="privacy__updated">
+        Last updated <time datetime={PRIVACY_UPDATED.iso}>{PRIVACY_UPDATED.label}</time>
+      </p>
+      <p class="privacy__intro">{PRIVACY_INTRO}</p>
+    </header>
+
+    <nav class="toc" aria-labelledby="toc-title">
+      <p class="toc__title" id="toc-title">Contents</p>
+      <ol class="toc__list" role="list">
+        {
+          PRIVACY_SECTIONS.map((section, i) => (
+            <li>
+              <a class="toc__link" href={`#${slug(section.heading)}`}>
+                <span class="privacy__num">{num(i)}</span>
+                {section.heading}
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
+
+    <div class="privacy__body">
+    {
+      PRIVACY_SECTIONS.map((section, i) => (
+        <section class="privacy__section" aria-labelledby={slug(section.heading)}>
+          <h2 class="privacy__heading" id={slug(section.heading)}>
+            <span class="privacy__num">{num(i)}</span>
+            {section.heading}
+          </h2>
+          {section.blocks.map((block) =>
+            block.type === 'p' ? (
+              <p>
+                {parts(block.text).map((part) =>
+                  part.href ? <a href={part.href}>{part.text}</a> : part.text,
+                )}
+              </p>
+            ) : (
+              <ul class="privacy__list">
+                {block.items.map((item) => (
+                  <li>
+                    {parts(item).map((part) =>
+                      part.href ? <a href={part.href}>{part.text}</a> : part.text,
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ),
+          )}
+        </section>
+      ))
+    }
+    </div>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .privacy {
+    display: grid;
+    grid-template-columns: minmax(0, 70ch) minmax(0, 1fr);
+    grid-template-areas:
+      'head toc'
+      'body toc';
+    align-items: start;
+    gap: 64px 80px;
+    /* Item page: content 55px under the nav bar; more air for a text page */
+    padding-top: 96px;
+    padding-bottom: 120px;
+  }
+  .privacy__head,
+  .privacy__section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .privacy__head {
+    grid-area: head;
+    align-items: flex-start;
+    gap: 24px;
+  }
+  .privacy__body {
+    grid-area: body;
+    display: flex;
+    flex-direction: column;
+    gap: 64px;
+  }
+  .privacy__heading {
+    scroll-margin-top: 24px;
+  }
+
+  .toc {
+    grid-area: toc;
+    position: sticky;
+    top: 40px;
+    justify-self: end;
+    width: min(100%, var(--card-w));
+    padding: 40px;
+    background: var(--c-black);
+    border: var(--border);
+    border-radius: var(--r-card);
+    box-shadow: var(--edge);
+  }
+  .toc__title {
+    margin-bottom: 20px;
+    font-size: var(--fs-h4);
+    font-weight: var(--fw-medium);
+    line-height: var(--lh-heading);
+  }
+  .toc__list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0;
+  }
+  .privacy .toc__link {
+    display: flex;
+    gap: 12px;
+    color: var(--c-grey);
+    text-decoration: none;
+  }
+  .privacy .toc__link:hover {
+    color: var(--c-green);
+  }
+  .privacy__updated {
+    color: var(--c-green);
+  }
+  .privacy__intro {
+    font-size: var(--fs-h4);
+    font-weight: var(--fw-medium);
+    line-height: var(--lh-heading);
+  }
+  .privacy__heading {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    font-size: var(--fs-h3);
+    font-weight: var(--fw-medium);
+    line-height: var(--lh-heading);
+  }
+  .privacy__num {
+    flex: none;
+    color: var(--c-green);
+  }
+  .privacy__list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0;
+    padding-left: 1.25em;
+  }
+  .privacy__list li::marker {
+    color: var(--c-green);
+  }
+  .privacy a {
+    color: var(--c-green);
+    text-decoration: underline;
+    text-decoration-skip-ink: none;
+    text-underline-position: from-font;
+    overflow-wrap: anywhere;
+  }
+  .privacy a:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  @media (max-width: 1023px) {
+    .privacy {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas:
+        'head'
+        'toc'
+        'body';
+      padding-top: 64px;
+      padding-bottom: 96px;
+    }
+    .privacy__head,
+    .privacy__body {
+      max-width: 70ch;
+    }
+    .toc {
+      position: static;
+      justify-self: start;
+    }
+  }
+  @media (max-width: 767px) {
+    .privacy {
+      gap: 48px;
+      padding-top: 40px;
+      padding-bottom: 64px;
+    }
+    .privacy__body {
+      gap: 48px;
+    }
+    .toc {
+      width: 100%;
+      padding: 32px 24px;
+    }
+    .privacy__head,
+    .privacy__section {
+      gap: 16px;
+    }
+    .privacy__heading {
+      gap: 12px;
+    }
+  }
+</style>

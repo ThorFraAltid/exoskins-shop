@@ -30,6 +30,8 @@ interface Props {
 
 const { figma = '901:753' } = Astro.props;
 const linkedinSrc = url('media/icons/linkedin.svg');
+/** The link to the page being shown gets aria-current="page". */
+const current = (href: string) => (url(href) === Astro.url.pathname ? 'page' : undefined);
 ---
 
 <footer class="footer" data-figma={figma}>
@@ -48,7 +50,7 @@ const linkedinSrc = url('media/icons/linkedin.svg');
                     {item.label}
                   </a>
                 ) : (
-                  <a class="footer__link" href={url(item.href)}>
+                  <a class="footer__link" href={url(item.href)} aria-current={current(item.href)}>
                     {item.label}
                   </a>
                 )}
@@ -131,7 +133,11 @@ const linkedinSrc = url('media/icons/linkedin.svg');
             {PRIVACY_LINK.label}
           </a>
         ) : (
-          <a class="footer__link" href={url(PRIVACY_LINK.href)}>
+          <a
+            class="footer__link"
+            href={url(PRIVACY_LINK.href)}
+            aria-current={current(PRIVACY_LINK.href)}
+          >
             {PRIVACY_LINK.label}
           </a>
         )
@@ -190,7 +196,8 @@ const linkedinSrc = url('media/icons/linkedin.svg');
     text-underline-position: from-font;
     white-space: nowrap;
   }
-  a.footer__link[href]:hover {
+  a.footer__link[href]:hover,
+  .footer__link[aria-current='page'] {
     color: var(--c-black);
     text-decoration-thickness: 2px;
   }

@@ -19,7 +19,8 @@ import { NAV_ITEMS, BASKET_LINK } from '../data/site';
  * - homeHref?: logo link target, default url('/')
  * - class?:    extra class on the root
  *
- * Pending links (About eXo, FAQ) render as <a> without href (PLAN.md finding 5).
+ * Pending links render as <a> without href (PLAN.md finding 5). The link to the
+ * current page carries aria-current="page" and is shown in green.
  */
 interface Props {
   variant: 'hero' | 'bar';
@@ -31,6 +32,8 @@ const { variant, homeHref = url('/'), class: className } = Astro.props;
 const figma = variant === 'bar' ? '5190:1435' : '3069:924';
 const logoSrc = url('media/brand/logo-pos.svg');
 const basketHref = BASKET_LINK.pending ? undefined : BASKET_LINK.href;
+/** The link to the page being shown gets aria-current="page". */
+const current = (href: string) => (url(href) === Astro.url.pathname ? 'page' : undefined);
 ---
 
 <header
@@ -51,7 +54,7 @@ const basketHref = BASKET_LINK.pending ? undefined : BASKET_LINK.href;
                 {item.label}
               </a>
             ) : (
-              <a class="navbar__link" href={url(item.href)}>
+              <a class="navbar__link" href={url(item.href)} aria-current={current(item.href)}>
                 {item.label}
               </a>
             )}
@@ -103,7 +106,12 @@ const basketHref = BASKET_LINK.pending ? undefined : BASKET_LINK.href;
                 {item.label}
               </a>
             ) : (
-              <a class="navbar__link" href={url(item.href)} data-menu-link>
+              <a
+                class="navbar__link"
+                href={url(item.href)}
+                aria-current={current(item.href)}
+                data-menu-link
+              >
                 {item.label}
               </a>
             )}
@@ -165,7 +173,8 @@ const basketHref = BASKET_LINK.pending ? undefined : BASKET_LINK.href;
     text-decoration: none;
     white-space: nowrap;
   }
-  a.navbar__link[href]:hover {
+  a.navbar__link[href]:hover,
+  .navbar__link[aria-current='page'] {
     color: var(--c-green);
   }
   .navbar__toggle {

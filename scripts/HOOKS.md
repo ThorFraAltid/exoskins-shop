@@ -15,7 +15,7 @@
 | `data-slider-prev` | Previous arrow | A `<button>` inside `data-slider`. The slider loops: on the first slide it shows the last one. |
 | `data-menu-button` | Mobile menu toggle | A `<button>` visible at 390 wide, `aria-expanded="false"` closed, `"true"` open. |
 | `data-menu` | Mobile menu panel | Closed: `hidden` attribute, or `display:none` / `visibility:hidden`. Opens on the button, closes on Escape. |
-| `data-pending` | A link or control whose destination does not exist yet (About eXo, FAQ, Privacy Policy, LinkedIn) | Rendered without `href`. Optional value names the reason. `check-links` lists it, `check-launch` fails on it. An `<a>` without `href` and without `data-pending` fails `check-links`. |
+| `data-pending` | A link or control whose destination does not exist yet (at present only LinkedIn) | Rendered without `href`. Optional value names the reason. `check-links` lists it, `check-launch` fails on it. An `<a>` without `href` and without `data-pending` fails `check-links`. |
 
 Other rules the checks enforce:
 

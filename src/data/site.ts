@@ -35,7 +35,7 @@ export type SiteLink =
 
 /** Paths are passed through `url()` by the components that render them. */
 export const NAV_ITEMS: SiteLink[] = [
-  { label: 'About eXo', pending: true },
+  { label: 'About eXo', href: '/about/' },
   { label: 'FAQ', href: '/#faq' },
   { label: 'Go to skins', href: '/#inventory' },
 ];
@@ -46,7 +46,7 @@ export const BASKET_LINK: SiteLink = {
   external: true,
 };
 
-export const PRIVACY_LINK: SiteLink = { label: 'Privacy Policy', pending: true };
+export const PRIVACY_LINK: SiteLink = { label: 'Privacy Policy', href: '/privacy/' };
 
 export const LINKEDIN_LINK: SiteLink = { label: 'LinkedIn', pending: true };
 

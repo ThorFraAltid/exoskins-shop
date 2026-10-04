@@ -21,6 +21,7 @@ bun run check:launch   # lists what blocks going live
 - Product page (`/skins/0003/`) at 1440: all sections within 2 px, except the footer (see below).
 - No horizontal scroll at 390, 768, 1024, 1440, 1920.
 - `bun run check:launch` fails on purpose. Its list is the "Needs Simon" list below.
+- After the About and Privacy pages (4 Oct 2026): `bun run verify` passes (10 HTML files, 1067 internal references, smoke test 19 of 19), `astro check` clean, no horizontal scroll on any route at the five widths; the only pending link left is LinkedIn.
 
 ## Needs Simon before launch
 
@@ -29,7 +30,7 @@ bun run check:launch   # lists what blocks going live
 3. Only skin 0003 has specs (from Figma: Factory New, Pattern Template 524, Wear Rating 0,779833555). The other four show only the compatibility list. The compatibility list is the one from Figma, shown on every skin.
 4. Five skins exist, the Home grid has six skin slots, so 0004 appears twice.
 5. Gold skin (0002) card image is a cut-out made from the first frame of his video. A proper render would be better. Skins 0004 and 0005 have one image each.
-6. Links with no destination: About eXo, FAQ, Privacy Policy, LinkedIn. They are shown as designed but do nothing. Set them in `src/data/site.ts`.
+6. Link with no destination: LinkedIn. It is shown as designed but does nothing. Set it in `src/data/site.ts`. (About eXo and Privacy Policy now lead to the new pages, FAQ to the Home FAQ.)
 7. Newsletter. "Subscribe to news" and "Get notified here" open a prefilled mail to hi@exoskins.shop, so signups depend on the visitor sending that mail. Set `NEWSLETTER_ENDPOINT` in `site.ts` once a provider is chosen.
 8. Placeholder copy from Figma that is live on the page: testimonials "John Smith" and "Navn Navnesen", "Lorem ipsum" in both Dropping Soon cards. Fake reviews are a legal risk in the EU.
 9. Hero. Figma shows a still of three mice; the hero plays the crate animation from the live site instead, fitted above the label row with soft edges.
@@ -59,6 +60,10 @@ Not in Simon's Figma file; he has not seen these.
 - Testimonials: five instead of three, shortened, with bold emphasis, looping and auto-advancing. Four of the five are placeholders (John Smith and three "Navn Navnesen"); `check:launch` blocks on them. Rune's quote is a shortened version of his original and needs his approval.
 - Dragon card: plays a looping video of the snake slithering (`public/media/drops/dragon.mp4`), generated from Simon's still with an image-to-video model (Wan 2.2 first/last frame on Hugging Face, free tier) and slowed with frame interpolation. The still image shows until the video plays and for visitors with reduced motion. Mid-loop frames are motion-blurred; a sharper take can be generated when the free quota resets.
 - Mobile: larger hero, menu opens under the fixed logo and button.
+- About page (`/about/`, nav "About eXo"): title, opening statement, founder story (why, what, how) next to a type-only founder card (no photo exists), "What we stand for" with the four hero label SVGs, closing block with "Go to skins" and "Get notified here". The copy in `src/data/about.ts` is a draft written from the brief, partly in Simon's voice (including the quote): Simon must approve or rewrite it.
+- Privacy Policy (`/privacy/`, footer link): a full policy describing what this site does (no cookies, no analytics, no storage; mail-app subscribe; contact; server logs; Amazon). `src/data/privacy.ts` is a draft, not legal advice: Simon, ideally with a lawyer, must review it. Its header lists the open points: CVR number (unknown, not printed), retention periods, newsletter/email provider, hosting provider, and Amazon order data if eXo receives any.
+- Page transitions (cross-document View Transitions, `global.css` "Page transitions"): every page fades out while the next rises 24px in (420ms); going into About, the About page rises from below behind a green edge (600ms) and plays an entrance sequence. Chromium browsers (Chrome, Edge 126+) and Safari 18.2+ support them (checked here in Chromium only); browsers without support navigate normally. Off with reduced motion.
+- The nav and footer mark the link of the current page (`aria-current="page"`, green in the nav).
 
 ## Where the site differs from Figma, on purpose
 
@@ -67,7 +72,7 @@ Not in Simon's Figma file; he has not seen these.
 - Gallery thumbnails that are not selected are dimmed to 60 %.
 - The grey "Hear from Our Satisfied Clients" subheading is left out: it is black on black in Figma and template text.
 - Mobile and tablet layouts, hover and focus states, the mobile menu and the 404 page are not in Figma. They follow PLAN.md and use only existing components, colours and radii. The menu button uses the Figma Plus icon.
-- Text written by the build, not by Simon: subscribe form status messages, "Back to Home" on the 404 page, page titles and meta description.
+- Text written by the build, not by Simon: subscribe form status messages, "Back to Home" on the 404 page, page titles and meta description, the About page and the Privacy Policy (both drafts, see above).
 
 ## Not done
 

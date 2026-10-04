@@ -109,8 +109,9 @@ body.is-scroll-locked {
 }
 
 /*
- * Motion (src/scripts/motion.ts adds .motion to <html> only when the visitor
- * allows motion, so without JS or with reduced motion everything is static).
+ * Motion (an inline script in Base.astro adds .motion to <html> before first
+ * paint, and only when the visitor allows motion, so without JS or with
+ * reduced motion everything is static; src/scripts/motion.ts runs the rest).
  */
 
 /* Scroll reveal: sections and cards ease in when they enter the viewport. */
@@ -320,6 +321,70 @@ body.is-scroll-locked {
 }
 .motion [data-typewriter].is-typing .tw-char.is-caret {
   box-shadow: 2px 0 0 0 currentColor;
+}
+
+/*
+ * Page transitions: cross-document View Transitions between the pages of this
+ * site (browsers only run them for same-origin navigations where both pages
+ * opt in; others navigate normally). Off with reduced motion. The pseudo-
+ * elements are styled by the page being opened:
+ * - every page: the old page fades out, the new one rises 24px into place (420ms);
+ * - into About (html[data-page='about']): the About page rises in from below
+ *   behind a green edge, the old page sinks back (600ms).
+ */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+  ::view-transition-old(root) {
+    animation: page-out 200ms var(--ease) both;
+  }
+  ::view-transition-new(root) {
+    animation: page-in 420ms var(--ease) both;
+  }
+  :root[data-page='about']::view-transition-old(root) {
+    animation: page-sink 600ms var(--ease) both;
+  }
+  :root[data-page='about']::view-transition-new(root) {
+    animation:
+      page-rise 600ms var(--ease) both,
+      page-edge 600ms linear both;
+  }
+}
+@keyframes page-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+    translate: 0 24px;
+  }
+}
+@keyframes page-sink {
+  to {
+    opacity: 0.25;
+    scale: 0.94;
+  }
+}
+@keyframes page-rise {
+  from {
+    translate: 0 100%;
+  }
+}
+/* The rising page wears the card edge (radius 45, 5px green edge) and lands
+   square: the corners only straighten in the last stretch. */
+@keyframes page-edge {
+  0%,
+  70% {
+    border-radius: var(--r-card) var(--r-card) 0 0;
+    box-shadow: 0 -5px 0 0 var(--c-green);
+  }
+  100% {
+    border-radius: 0;
+    box-shadow: 0 -5px 0 0 var(--c-green);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -14,17 +14,25 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../data/site';
  *                 title is "eXoskins.shop".
  * - description?: meta and OG description (default: the Inventory subheading)
  * - ogImage?:     public path of the OG image (default 'media/hero-poster.jpg')
+ * - page?:        written to <html data-page>. 'about' gives the page transition
+ *                 into the About page its own animation (global.css, "Page transitions").
+ *
+ * Motion: an inline script in <head> adds `.motion` to <html> before first paint
+ * when the visitor allows motion, so entrance animations never flash. The Home
+ * intro (`.intro`) is still decided only by Hero.astro.
  */
 interface Props {
   title?: string;
   description?: string;
   ogImage?: string;
+  page?: 'about';
 }
 
 const {
   title,
   description = SITE_DESCRIPTION,
   ogImage = 'media/hero-poster.jpg',
+  page,
 } = Astro.props;
 
 if (!Astro.site) {
@@ -36,10 +44,16 @@ const ogImageUrl = new URL(url(ogImage), Astro.site).href;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-page={page}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline>
+      // Before first paint: motion styles apply only when the visitor allows motion.
+      if (matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+        document.documentElement.classList.add('motion');
+      }
+    </script>
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
