@@ -35,6 +35,16 @@ bun run check:launch   # lists what blocks going live
 9. Hero. Figma shows a still of three mice; the hero plays the crate animation from the live site instead, fitted above the label row with soft edges.
 10. Favicon is the logo pill cut from the icon sheet. A square icon would look better.
 
+## Added after the Figma build (Thor's requests, 4 Oct 2026)
+
+Not in Simon's Figma file; he has not seen these.
+
+- Motion: home intro (video, then logo, frame, rest), scroll reveal, floating card images, typewriter id labels, looping hero label animations, skull zoom, dragon flow, lightning on the Lightning skin card, smooth in-page scrolling. All off with reduced motion.
+- FAQ section on Home (`src/data/faq.ts`). The five answers are a draft written from the brief and the site's own labels. Simon must approve or replace them.
+- Testimonials: five instead of three, shortened, with bold emphasis, looping and auto-advancing. Four of the five are placeholders (John Smith and three "Navn Navnesen"); `check:launch` blocks on them. Rune's quote is a shortened version of his original and needs his approval.
+- Dragon card: the motion is a shader that slides the scale texture around the coil of the still image. A real moving snake needs a video or animated render (the Pika account had 0 credits).
+- Mobile: larger hero, menu opens under the fixed logo and button.
+
 ## Where the site differs from Figma, on purpose
 
 - Item page footer: Figma has it 19 px left and with a 380 px empty band above. The site uses the Home footer position and spacing.

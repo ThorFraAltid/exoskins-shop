@@ -37,7 +37,7 @@ interface Props {
 
 const { skin, variant, tagline, labelPrefix, figma, loading = 'lazy', class: className } =
   Astro.props;
-const { card, name } = skin.data;
+const { card, name, effect } = skin.data;
 const label = `${labelPrefix}${skin.id}`;
 const href = url(`skins/${skin.id}/`);
 ---
@@ -76,6 +76,15 @@ const href = url(`skins/${skin.id}/`);
               height={card.height}
               loading={loading}
               decoding="async"
+            />
+          )
+        }
+        {
+          effect && (
+            <canvas
+              class="skin-card__fx"
+              data-fx={effect.kind}
+              style={`--fx-mask: url('${url(effect.mask)}')`}
             />
           )
         }
@@ -182,6 +191,18 @@ const href = url(`skins/${skin.id}/`);
     overflow: hidden;
   }
   /* Figma image crop: 100.18% x 110.06% at -0.09% / -5.02%. */
+  /* Effect canvas: same box as the image, visible only on the mask (the skin). */
+  .skin-card__fx {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    /* the image is drawn at 100.18% x 110.06%, centred on this box */
+    -webkit-mask: var(--fx-mask) center / 100.18% 110.06% no-repeat;
+    mask: var(--fx-mask) center / 100.18% 110.06% no-repeat;
+  }
   .skin-card__mouse :global(img) {
     position: absolute;
     left: -0.09%;

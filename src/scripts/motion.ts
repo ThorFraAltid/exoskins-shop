@@ -21,7 +21,7 @@ const INTRO_STEP_MS = 550;
 const wait = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
 
 /**
- * Home intro. Hero.astro sets `.intro` before first paint (once per session).
+ * Home intro. Hero.astro sets `.intro` before first paint (direct loads and reloads).
  * Order: video on black -> crate appears -> logo -> green frame -> the rest.
  */
 async function runIntro() {
@@ -52,7 +52,6 @@ async function runIntro() {
   root.classList.add('intro-frame');
   await wait(INTRO_STEP_MS);
   root.classList.add('intro-rest');
-  sessionStorage.setItem('exoIntroSeen', '1');
 }
 
 function prepareTypewriter(pill: HTMLElement) {
@@ -94,9 +93,9 @@ function type(pill: HTMLElement) {
 async function start() {
   root.classList.add('motion');
 
-  // Reveal targets: every Figma section and card, except elements that hold the
+  // Reveal targets: every Figma section and card (plus [data-reveal]), except elements that hold the
   // mobile menu (a moving ancestor would displace its fixed panel).
-  const revealTargets = [...document.querySelectorAll<HTMLElement>('[data-figma]')].filter(
+  const revealTargets = [...document.querySelectorAll<HTMLElement>('[data-figma], [data-reveal]')].filter(
     (el) => !el.querySelector('[data-menu]') && !el.closest('header'),
   );
   for (const el of revealTargets) el.dataset.reveal = '';
@@ -150,4 +149,7 @@ async function start() {
   for (const el of document.querySelectorAll('.drop--wide')) zoomObserver.observe(el);
 }
 
-if (motionAllowed.matches) void start();
+if (motionAllowed.matches) {
+  void start();
+  void import('./fx').then((fx) => fx.startEffects());
+}

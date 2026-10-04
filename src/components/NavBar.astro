@@ -79,9 +79,8 @@ const basketHref = BASKET_LINK.pending ? undefined : BASKET_LINK.href;
     >
       <svg width="44" height="44" viewBox="0 0 58 58" aria-hidden="true">
         <circle cx="29" cy="29" r="28.5" class="navbar__toggle-bg"></circle>
-        <path
-          d="M25.6 41.08V31.36H16V25.72H25.6V16H31.48V25.72H41.08V31.36H31.48V41.08H25.6Z"
-          class="navbar__toggle-fg"></path>
+        <path d="M16 25.72H41.08V31.36H16Z" class="navbar__toggle-fg navbar__toggle-h"></path>
+        <path d="M25.6 16H31.48V41.08H25.6Z" class="navbar__toggle-fg navbar__toggle-v"></path>
       </svg>
     </button>
   </nav>
@@ -95,17 +94,6 @@ const basketHref = BASKET_LINK.pending ? undefined : BASKET_LINK.href;
     hidden
     data-menu
   >
-    <div class="menu__top">
-      <a class="navbar__logo" href={homeHref}>
-        <img src={logoSrc} alt="eXo home" width="180" height="48" />
-      </a>
-      <button class="navbar__toggle menu__close" type="button" aria-label="Close menu" data-menu-close>
-        <svg width="44" height="44" viewBox="0 0 58 58" aria-hidden="true">
-          <circle cx="29" cy="29" r="28.5" class="navbar__toggle-bg"></circle>
-          <path d="M20 31.64V26H37.76V31.64H20Z" class="navbar__toggle-fg"></path>
-        </svg>
-      </button>
-    </div>
     <ul class="menu__links" role="list">
       {
         NAV_ITEMS.map((item) => (
@@ -197,8 +185,22 @@ const basketHref = BASKET_LINK.pending ? undefined : BASKET_LINK.href;
   }
   .navbar__toggle-fg {
     fill: var(--c-dark);
+    transform-origin: 28.54px 28.54px;
+    transition: transform 320ms cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  /* open: the plus folds into the Figma minus (17.76 wide) */
+  .navbar__toggle[aria-expanded='true'] .navbar__toggle-v {
+    transform: rotate(90deg) scaleY(0);
+  }
+  .navbar__toggle[aria-expanded='true'] .navbar__toggle-h {
+    transform: scaleX(0.708);
   }
 
+  /* The panel opens under the nav row: logo and button never move. */
+  .navbar__row {
+    position: relative;
+    z-index: 101;
+  }
   .menu {
     position: fixed;
     inset: 0;
@@ -207,21 +209,30 @@ const basketHref = BASKET_LINK.pending ? undefined : BASKET_LINK.href;
     flex-direction: column;
     gap: 40px;
     height: 100dvh;
-    padding: 16px var(--gutter) 32px;
+    /* --menu-top: bottom edge of the nav row, set when the menu opens */
+    padding: calc(var(--menu-top, 96px) + 40px) var(--gutter) 32px;
     overflow-y: auto;
     background: var(--c-black);
+    opacity: 0;
+    transition: opacity 320ms cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  .menu > :global(*) {
+    opacity: 0;
+    translate: 0 16px;
+    transition:
+      opacity 320ms cubic-bezier(0.65, 0, 0.35, 1),
+      translate 320ms cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  .menu.is-open,
+  .menu.is-open > :global(*) {
+    opacity: 1;
+    translate: none;
+  }
+  .menu.is-open > :global(:nth-child(2)) {
+    transition-delay: 70ms;
   }
   .menu[hidden] {
     display: none;
-  }
-  .menu__top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 68px;
-  }
-  .menu__close {
-    display: block;
   }
   .menu__links {
     display: flex;
@@ -266,12 +277,15 @@ const basketHref = BASKET_LINK.pending ? undefined : BASKET_LINK.href;
   const FOCUSABLE = 'a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])';
 
   for (const root of document.querySelectorAll<HTMLElement>('[data-navbar]')) {
-    const openBtn = root.querySelector<HTMLButtonElement>('[data-menu-open]');
-    const closeBtn = root.querySelector<HTMLButtonElement>('[data-menu-close]');
+    const toggle = root.querySelector<HTMLButtonElement>('[data-menu-button]');
+    const row = root.querySelector<HTMLElement>('.navbar__row');
     const menu = root.querySelector<HTMLElement>('[data-menu]');
-    if (!openBtn || !closeBtn || !menu) {
+    if (!toggle || !row || !menu) {
       throw new Error('NavBar: menu markup is incomplete');
     }
+    const CLOSE_MS = 320;
+    let hideTimer: number | undefined;
+    const isOpen = () => toggle.getAttribute('aria-expanded') === 'true';
 
     const onKeydown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -280,10 +294,10 @@ const basketHref = BASKET_LINK.pending ? undefined : BASKET_LINK.href;
         return;
       }
       if (event.key !== 'Tab') return;
-      const items = [...menu.querySelectorAll<HTMLElement>(FOCUSABLE)];
-      const first = items[0];
-      const last = items[items.length - 1];
-      if (!first || !last) return;
+      // Focus stays within the button and the panel.
+      const items = [toggle, ...menu.querySelectorAll<HTMLElement>(FOCUSABLE)];
+      const first = items[0]!;
+      const last = items[items.length - 1]!;
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
         last.focus();
@@ -294,32 +308,37 @@ const basketHref = BASKET_LINK.pending ? undefined : BASKET_LINK.href;
     };
 
     const open = () => {
+      window.clearTimeout(hideTimer);
+      menu.style.setProperty('--menu-top', `${row.getBoundingClientRect().bottom}px`);
       menu.hidden = false;
-      openBtn.setAttribute('aria-expanded', 'true');
+      void menu.offsetWidth; // start the fade from the hidden state
+      menu.classList.add('is-open');
+      toggle.setAttribute('aria-expanded', 'true');
+      toggle.setAttribute('aria-label', 'Close menu');
       document.body.classList.add('is-scroll-locked');
       document.addEventListener('keydown', onKeydown);
-      closeBtn.focus();
     };
 
     function close() {
-      menu!.hidden = true;
-      openBtn!.setAttribute('aria-expanded', 'false');
+      menu!.classList.remove('is-open');
+      hideTimer = window.setTimeout(() => (menu!.hidden = true), CLOSE_MS);
+      toggle!.setAttribute('aria-expanded', 'false');
+      toggle!.setAttribute('aria-label', 'Open menu');
       document.body.classList.remove('is-scroll-locked');
       document.removeEventListener('keydown', onKeydown);
-      openBtn!.focus();
+      toggle!.focus();
     }
 
-    openBtn.addEventListener('click', open);
-    closeBtn.addEventListener('click', close);
+    toggle.addEventListener('click', () => (isOpen() ? close() : open()));
     // In-page links ("Go to skins" -> /#inventory) close the menu before scrolling.
     for (const link of menu.querySelectorAll('[data-menu-link]')) {
       link.addEventListener('click', () => {
-        if (!menu.hidden) close();
+        if (isOpen()) close();
       });
     }
     // Leaving the mobile layout while open: close so the page is not left locked.
     window.matchMedia('(min-width: 1024px)').addEventListener('change', (event) => {
-      if (event.matches && !menu.hidden) close();
+      if (event.matches && isOpen()) close();
     });
   }
 </script>

@@ -41,6 +41,10 @@ const skins = defineCollection({
           height: z.number().int().positive(),
         }),
       ]),
+      /** Optional live effect drawn over the card image, limited to the mask area. */
+      effect: z
+        .object({ kind: z.literal('lightning'), mask: publicMedia })
+        .optional(),
       /**
        * Product page gallery. Media order: the video (optional) first, then the
        * images. One thumbnail per media item; a video's thumbnail is its poster.
@@ -65,6 +69,8 @@ const skins = defineCollection({
               main: placement.optional(),
               /** Placement in the thumbnail; default: ProductGallery DEFAULT_THUMB. */
               thumbPlacement: placement.optional(),
+              /** Mask (skin area) for the skin's `effect` on this image in the main view. */
+              fxMask: publicMedia.optional(),
             }),
           ),
         })

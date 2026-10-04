@@ -187,7 +187,14 @@ try {
     await page.waitForTimeout(100);
     const i0 = await activeIndex();
     assert(i0 === 0, `Home key: active slide is ${i0}, expected 0`);
-    assert(await slider.locator('[data-slider-prev]').isDisabled(), 'prev arrow is not disabled on the first slide');
+    // The slider loops: previous on the first slide shows the last one, and next brings it back.
+    await slider.locator('[data-slider-prev]').click();
+    await page.waitForTimeout(600);
+    const wrapped = await activeIndex();
+    assert(wrapped === n - 1, `prev on the first slide: active ${wrapped}, expected ${n - 1}`);
+    await slider.locator('[data-slider-next]').click();
+    await page.waitForTimeout(600);
+    assert((await activeIndex()) === 0, 'next on the last slide did not wrap to the first');
     await slider.locator('[data-slider-next]').click();
     await page.waitForTimeout(100);
     const i1 = await activeIndex();
@@ -213,12 +220,21 @@ try {
     assert(await btn.isVisible(), 'menu button not visible at 390');
     assert(!(await menu.isVisible()), 'menu visible before opening');
     assert((await btn.getAttribute('aria-expanded')) === 'false', `aria-expanded="${await btn.getAttribute('aria-expanded')}" before opening`);
+    // let the home intro finish, it moves the logo into place
+    await page.waitForFunction(() => !document.documentElement.classList.contains('intro') || document.documentElement.classList.contains('intro-rest'));
+    await page.waitForTimeout(1200);
+    const logoBefore = await page.locator('.navbar__logo').first().boundingBox();
+    const btnBefore = await btn.boundingBox();
     await btn.click();
-    await page.waitForTimeout(150);
+    await page.waitForTimeout(500);
+    const logoAfter = await page.locator('.navbar__logo').first().boundingBox();
+    const btnAfter = await btn.boundingBox();
+    assert(JSON.stringify(logoBefore) === JSON.stringify(logoAfter), 'logo moved or resized when the menu opened');
+    assert(JSON.stringify(btnBefore) === JSON.stringify(btnAfter), 'menu button moved or resized when the menu opened');
     assert(await menu.isVisible(), 'menu not visible after clicking the button');
     assert((await btn.getAttribute('aria-expanded')) === 'true', 'aria-expanded not "true" when open');
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(150);
+    await page.waitForTimeout(600); // the menu fades out before it is hidden
     assert(!(await menu.isVisible()), 'menu still visible after Escape');
     assert((await btn.getAttribute('aria-expanded')) === 'false', 'aria-expanded not "false" after Escape');
     await page.close();

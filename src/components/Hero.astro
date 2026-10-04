@@ -24,10 +24,13 @@ const usp = (file: string) => url(`media/usp/${file}`);
 ---
 
 <script is:inline>
-  // Before first paint: enable motion, and the intro once per session.
+  // Before first paint: enable motion, and the intro on every direct load or
+  // reload (not when arriving from another page of this site).
   if (matchMedia('(prefers-reduced-motion: no-preference)').matches) {
     document.documentElement.classList.add('motion');
-    if (!sessionStorage.getItem('exoIntroSeen')) document.documentElement.classList.add('intro');
+    var nav = performance.getEntriesByType('navigation')[0];
+    var internal = document.referrer && new URL(document.referrer).origin === location.origin;
+    if (!internal || (nav && nav.type === 'reload')) document.documentElement.classList.add('intro');
   }
 </script>
 <div class="hero" data-figma="7102:807" data-hero>
@@ -55,14 +58,17 @@ const usp = (file: string) => url(`media/usp/${file}`);
     </div>
     <ul class="hero__usps" role="list" aria-label="Features">
       <li class="usp usp--1">
-        <img src={usp('usp-1.svg')} alt="/grip_add_aim" width="134.927" height="40.8193" />
+        <span class="usp__split" style="--split: 31%">
+          <img class="usp__ico" src={usp('usp-1.svg')} alt="/grip_add_aim" width="134.927" height="40.8193" />
+          <img class="usp__txt" src={usp('usp-1.svg')} alt="" width="134.927" height="40.8193" />
+        </span>
       </li>
       <li class="usp usp--2">
         <span class="usp__icon2">
-          <img src={usp('usp-2-icon.svg')} alt="" width="44.5237" height="39.4854" />
+          <img class="usp__ico" src={usp('usp-2-icon.svg')} alt="" width="44.5237" height="39.4854" />
         </span>
         <img
-          class="usp__text2"
+          class="usp__text2 usp__txt"
           src={usp('usp-2-text.svg')}
           alt="/cl_sweatproof"
           width="99.3202"
@@ -70,19 +76,22 @@ const usp = (file: string) => url(`media/usp/${file}`);
         />
       </li>
       <li class="usp usp--3">
-        <img src={usp('usp-3.svg')} alt="/precision_cut" width="138.673" height="40.84" />
+        <span class="usp__split" style="--split: 29.5%">
+          <img class="usp__ico" src={usp('usp-3.svg')} alt="/precision_cut" width="138.673" height="40.84" />
+          <img class="usp__txt" src={usp('usp-3.svg')} alt="" width="138.673" height="40.84" />
+        </span>
       </li>
       <li class="usp usp--4">
         <span class="usp__box4">
           <img
-            class="usp__text4"
+            class="usp__text4 usp__txt"
             src={usp('usp-4-text.svg')}
             alt="/nano_thin_mode"
             width="106.17"
             height="9.36339"
           />
           <img
-            class="usp__icon4"
+            class="usp__icon4 usp__ico"
             src={usp('usp-4-icon.svg')}
             alt=""
             width="40.5493"
@@ -168,6 +177,23 @@ const usp = (file: string) => url(`media/usp/${file}`);
   }
   .usp img {
     max-width: none;
+  }
+  /* One SVG holds icon and name: two copies, one clipped to the icon, one to
+     the name, so they can move separately (see "USP loop" in global.css). */
+  .usp__split {
+    position: relative;
+    display: block;
+  }
+  .usp__split .usp__ico {
+    display: block;
+    clip-path: inset(0 calc(100% - var(--split)) 0 0);
+    transform-origin: calc(var(--split) / 2) 50%;
+  }
+  .usp__split .usp__txt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    clip-path: inset(0 0 0 var(--split));
   }
   .usp--1 img {
     width: calc(134.927 * var(--u));

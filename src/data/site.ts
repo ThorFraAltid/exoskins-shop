@@ -36,7 +36,7 @@ export type SiteLink =
 /** Paths are passed through `url()` by the components that render them. */
 export const NAV_ITEMS: SiteLink[] = [
   { label: 'About eXo', pending: true },
-  { label: 'FAQ', pending: true },
+  { label: 'FAQ', href: '/#faq' },
   { label: 'Go to skins', href: '/#inventory' },
 ];
 

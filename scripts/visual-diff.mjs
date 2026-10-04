@@ -106,10 +106,12 @@ try {
       row.dy = Math.round(box.y - f.y);
       row.dw = Math.round(box.w - f.w);
       row.dh = Math.round(box.h - f.h);
-      if (Math.abs(row.dx) > TOL) row.notes.push('dx');
+      // dxFree / dyFree in sections.json: a documented, intended offset from Figma (reported, not gated).
+      if (f.dyFree) row.warn.push(`dy not gated: ${f.dyFree}`);
+      if (Math.abs(row.dx) > TOL && !f.dxFree) row.notes.push('dx');
       if (Math.abs(row.dw) > TOL) row.notes.push('dw');
       if (Math.abs(row.dh) > TOL) row.notes.push('dh');
-      if (prevDy !== null && Math.abs(row.dy - prevDy) > TOL) row.notes.push(`dy jumps ${fmt(row.dy - prevDy)} vs previous`);
+      if (!f.dyFree && prevDy !== null && Math.abs(row.dy - prevDy) > TOL) row.notes.push(`dy jumps ${fmt(row.dy - prevDy)} vs previous`);
       prevDy = row.dy;
       if (row.notes.length) failed = true;
 

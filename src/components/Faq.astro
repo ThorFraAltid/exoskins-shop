@@ -1,0 +1,142 @@
+---
+import { FAQ } from '../data/faq';
+
+/**
+ * FAQ accordion (Home, after the testimonials). Not in the Figma file: built
+ * from the existing card language (radius 45, 1px border, 5px bottom edge) and
+ * the Figma "Plus icon" component (403:326, plus / minus). One item per
+ * <details>, the first one open; an open item turns green.
+ */
+---
+
+<section class="faq" aria-label="Frequently asked questions">
+  {
+    FAQ.map((item, i) => (
+      <details class="faq__item" open={i === 0} data-reveal>
+        <summary class="faq__summary">
+          <span class="faq__number">{String(i + 1).padStart(2, '0')}</span>
+          <span class="faq__question">{item.question}</span>
+          <span class="faq__icon" aria-hidden="true">
+            <svg viewBox="0 0 58 58" width="58" height="58">
+              <circle cx="29" cy="29" r="28.5" />
+              <path class="faq__plus" d="M25.6 41.08V31.36H16V25.72H25.6V16H31.48V25.72H41.08V31.36H31.48V41.08H25.6Z" />
+              <path class="faq__minus" d="M20 31.64V26H37.76V31.64H20Z" />
+            </svg>
+          </span>
+        </summary>
+        <div class="faq__answer">
+          <p>{item.answer}</p>
+        </div>
+      </details>
+    ))
+  }
+</section>
+
+<style>
+  .faq {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    width: var(--column);
+    margin-inline: auto;
+  }
+  .faq__item {
+    --focus-ring: var(--c-black);
+    padding: 41px 60px;
+    background: var(--c-grey);
+    color: var(--c-black);
+    border: var(--border);
+    border-radius: var(--r-card);
+    box-shadow: var(--edge);
+    transition: background-color var(--dur) var(--ease);
+  }
+  .faq__item[open] {
+    background: var(--c-green);
+  }
+  .faq__summary {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    cursor: pointer;
+    list-style: none;
+  }
+  .faq__summary::-webkit-details-marker {
+    display: none;
+  }
+  .faq__number {
+    flex: none;
+    font-size: var(--fs-h1);
+    font-weight: var(--fw-medium);
+    line-height: var(--lh-heading);
+  }
+  .faq__question {
+    flex: 1;
+    font-size: var(--fs-h3);
+    font-weight: var(--fw-medium);
+    line-height: var(--lh-heading);
+  }
+  .faq__icon {
+    flex: none;
+    width: 58px;
+    height: 58px;
+  }
+  .faq__icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .faq__icon circle {
+    fill: var(--c-grey);
+    stroke: var(--c-dark);
+  }
+  .faq__plus {
+    fill: var(--c-dark);
+  }
+  .faq__minus {
+    display: none;
+    fill: var(--c-black);
+  }
+  .faq__item[open] .faq__plus {
+    display: none;
+  }
+  .faq__item[open] .faq__minus {
+    display: inline;
+  }
+  .faq__answer {
+    margin-top: 30px;
+    padding-top: 30px;
+    border-top: 1px solid var(--c-black);
+    font-size: var(--fs-p);
+    line-height: var(--lh-p);
+  }
+  .faq__answer p {
+    max-width: 70ch;
+    margin: 0;
+  }
+
+  @media (max-width: 767px) {
+    .faq {
+      gap: 20px;
+    }
+    .faq__item {
+      padding: 24px;
+    }
+    .faq__summary {
+      gap: 14px;
+    }
+    .faq__number {
+      font-size: var(--fs-h2);
+    }
+    .faq__question {
+      font-size: var(--fs-h4);
+    }
+    .faq__icon {
+      width: 44px;
+      height: 44px;
+    }
+    .faq__answer {
+      margin-top: 20px;
+      padding-top: 20px;
+    }
+  }
+</style>

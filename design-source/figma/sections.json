@@ -123,7 +123,8 @@
     "x": 100,
     "y": 3788,
     "w": 1241,
-    "h": 555
+    "h": 555,
+    "dyFree": "the FAQ section (not in Figma) sits above the footer"
    }
   }
  },
@@ -257,7 +258,9 @@
     "x": 81,
     "y": 2846,
     "w": 1241,
-    "h": 555
+    "h": 555,
+    "dyFree": "Figma has a 380px empty band above the Item footer and puts it 19px left; the site uses the Home footer position",
+    "dxFree": true
    }
   }
  },

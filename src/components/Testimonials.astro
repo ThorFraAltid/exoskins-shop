@@ -28,7 +28,7 @@ interface Props {
 
 const {
   figma = '901:681',
-  initialIndex = 1,
+  initialIndex = 0,
   label = 'Customer testimonials',
 } = Astro.props;
 
@@ -48,7 +48,10 @@ if (initialIndex < 0 || initialIndex >= items.length) {
 const STAR = 'M7.0099 2.05941L14 0L11.9604 7.0099L14 14L7.0099 11.9604L0 14L2.05941 7.0099L0 0L7.0099 2.05941Z';
 const ARROW =
   'M21.5 12.5459C22.3284 12.5459 23 11.8744 23 11.0459C23 10.2175 22.3284 9.54594 21.5 9.54594L21.5 11.0459L21.5 12.5459ZM0.43934 9.98528C-0.146447 10.5711 -0.146447 11.5208 0.43934 12.1066L9.98528 21.6525C10.5711 22.2383 11.5208 22.2383 12.1066 21.6525C12.6924 21.0668 12.6924 20.117 12.1066 19.5312L3.62132 11.0459L12.1066 2.56066C12.6924 1.97487 12.6924 1.02513 12.1066 0.439341C11.5208 -0.146446 10.5711 -0.146446 9.98528 0.43934L0.43934 9.98528ZM21.5 11.0459L21.5 9.54594L1.5 9.54594L1.5 11.0459L1.5 12.5459L21.5 12.5459L21.5 11.0459Z';
-const last = items.length - 1;
+/** Copies of the last/first slides on each side, so the row can loop without a jump. */
+const CLONES = Math.min(2, items.length);
+const before = items.slice(-CLONES);
+const after = items.slice(0, CLONES);
 ---
 
 <section
@@ -59,10 +62,39 @@ const last = items.length - 1;
   data-testimonials
   data-slider
   data-index={initialIndex}
-  style={`--index: ${initialIndex}`}
+  data-clones={CLONES}
+  style={`--pos: ${initialIndex + CLONES}`}
 >
   <div class="testimonials__viewport">
     <ul class="testimonials__track" role="list" aria-live="polite" data-track>
+      {
+        before.map((item) => (
+          <li class="testimonials__slide" aria-hidden="true" inert data-clone>
+            <figure class="testimonials__card">
+              <blockquote class="testimonials__bubble">
+                <p>
+                  {parts(item.data.quote).map((part) =>
+                    part.strong ? <strong>{part.text}</strong> : part.text,
+                  )}
+                </p>
+                <svg
+                  class="testimonials__tail"
+                  width="53.2774"
+                  height="28.048"
+                  viewBox="56.3613 237.952 53.2774 28.048"
+                  aria-hidden="true"
+                >
+                  <path d="M109.639 237.952L83 266L56.3613 237.952Z" />
+                </svg>
+              </blockquote>
+              <figcaption class="testimonials__who">
+                <span class="testimonials__name">{item.data.name}</span>
+                <span class="testimonials__role">{item.data.role}</span>
+              </figcaption>
+            </figure>
+          </li>
+        ))
+      }
       {
         items.map((item, i) => (
           <li
@@ -99,6 +131,34 @@ const last = items.length - 1;
           </li>
         ))
       }
+      {
+        after.map((item) => (
+          <li class="testimonials__slide" aria-hidden="true" inert data-clone>
+            <figure class="testimonials__card">
+              <blockquote class="testimonials__bubble">
+                <p>
+                  {parts(item.data.quote).map((part) =>
+                    part.strong ? <strong>{part.text}</strong> : part.text,
+                  )}
+                </p>
+                <svg
+                  class="testimonials__tail"
+                  width="53.2774"
+                  height="28.048"
+                  viewBox="56.3613 237.952 53.2774 28.048"
+                  aria-hidden="true"
+                >
+                  <path d="M109.639 237.952L83 266L56.3613 237.952Z" />
+                </svg>
+              </blockquote>
+              <figcaption class="testimonials__who">
+                <span class="testimonials__name">{item.data.name}</span>
+                <span class="testimonials__role">{item.data.role}</span>
+              </figcaption>
+            </figure>
+          </li>
+        ))
+      }
     </ul>
   </div>
 
@@ -107,7 +167,6 @@ const last = items.length - 1;
       class="testimonials__arrow"
       type="button"
       aria-label="Previous testimonial"
-      disabled={initialIndex === 0}
       data-prev
       data-slider-prev
     >
@@ -136,7 +195,6 @@ const last = items.length - 1;
       class="testimonials__arrow testimonials__arrow--next"
       type="button"
       aria-label="Next testimonial"
-      disabled={initialIndex === last}
       data-next
       data-slider-next
     >
@@ -183,8 +241,11 @@ const last = items.length - 1;
     padding: 0;
     list-style: none;
     margin-left: calc(50% - var(--slide-w) / 2 + var(--shift));
-    transform: translateX(calc(var(--index) * -1 * (var(--slide-w) + var(--gap))));
+    transform: translateX(calc(var(--pos) * -1 * (var(--slide-w) + var(--gap))));
     transition: transform 400ms var(--ease);
+  }
+  .testimonials.is-snapping .testimonials__track {
+    transition: none;
   }
   .testimonials__slide {
     flex: none;
@@ -355,12 +416,41 @@ const last = items.length - 1;
     if (!prev || !next || !viewport || slides.length === 0) {
       throw new Error('Testimonials: slider markup is incomplete');
     }
-    const last = slides.length - 1;
+    const track = root.querySelector<HTMLElement>('[data-track]');
+    if (!track) throw new Error('Testimonials: [data-track] is missing');
+    const count = slides.length;
+    const last = count - 1;
+    const clones = Number(root.dataset.clones);
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let index = Number(root.dataset.index);
+    /** True while the row rests on a clone and still has to jump to the real slide. */
+    let snapPending = false;
 
+    const setPos = (pos: number) => root.style.setProperty('--pos', String(pos));
+    /** Jumps (without animation) from a clone to the real slide it copies. */
+    const snap = () => {
+      if (!snapPending) return;
+      snapPending = false;
+      root.classList.add('is-snapping');
+      setPos(index + clones);
+      void track.offsetWidth; // apply the jump before transitions come back
+      root.classList.remove('is-snapping');
+    };
+    track.addEventListener('transitionend', (event) => {
+      if (event.target === track) snap();
+    });
+
+    /** Shows slide `target`; -1 and `count` wrap around through the clones. */
     const go = (target: number) => {
-      index = Math.max(0, Math.min(last, target));
-      root.style.setProperty('--index', String(index));
+      snap();
+      const wraps = target < 0 || target > last;
+      index = ((target % count) + count) % count;
+      if (wraps && !reducedMotion.matches) {
+        setPos(target + clones); // animate onto the clone, then snap
+        snapPending = true;
+      } else {
+        setPos(index + clones);
+      }
       root.dataset.index = String(index);
       slides.forEach((slide, i) => {
         if (i === index) slide.removeAttribute('aria-hidden');
@@ -371,8 +461,6 @@ const last = items.length - 1;
         if (i === index) dot.setAttribute('aria-current', 'true');
         else dot.removeAttribute('aria-current');
       });
-      prev.disabled = index === 0;
-      next.disabled = index === last;
     };
 
     // Auto-advance while the slider is on screen, until the visitor touches,
@@ -396,7 +484,7 @@ const last = items.length - 1;
         ([entry]) => {
           stopAuto();
           if (entry!.isIntersecting && !userTookOver) {
-            timer = window.setInterval(() => go(index === last ? 0 : index + 1), AUTO_MS);
+            timer = window.setInterval(() => go(index + 1), AUTO_MS);
           }
         },
         { threshold: 0.4 },
@@ -418,10 +506,6 @@ const last = items.length - 1;
       if (target === undefined) return;
       event.preventDefault();
       go(target);
-      // Keep focus on a usable control when an arrow becomes disabled.
-      if (document.activeElement instanceof HTMLButtonElement && document.activeElement.disabled) {
-        dots[index]?.focus();
-      }
     });
 
     let startX: number | null = null;

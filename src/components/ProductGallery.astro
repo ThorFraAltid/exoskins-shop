@@ -45,7 +45,7 @@ const THUMB_BOX = { w: 143, h: 136 };
 const THUMB_FIGMA = ['5205:946', '7037:844', '7094:827', '7087:1296'];
 
 const { skin, class: className } = Astro.props;
-const { name, gallery } = skin.data;
+const { name, gallery, effect } = skin.data;
 const alt = `${skin.id} ${name}`;
 
 type Media =
@@ -56,6 +56,7 @@ type Media =
       thumb: ImageMetadata;
       main: Placement;
       thumbPlacement: Placement;
+      fxMask?: string;
     };
 
 const media: Media[] = [
@@ -66,6 +67,7 @@ const media: Media[] = [
     thumb: img.thumb ?? img.src,
     main: img.main ?? DEFAULT_MAIN,
     thumbPlacement: img.thumbPlacement ?? DEFAULT_THUMB,
+    fxMask: img.fxMask,
   })),
 ];
 if (media.length === 0) throw new Error(`ProductGallery: skin ${skin.id} has no media`);
@@ -140,6 +142,13 @@ const thumbLabel = (m: Media, i: number) =>
                 fetchpriority={i === 0 ? 'high' : 'low'}
                 decoding="async"
               />
+              {effect && m.fxMask && (
+                <canvas
+                  class:list={['gallery__img', 'gallery__fx', { 'gallery__img--cover': m.main === 'cover' }]}
+                  data-fx={effect.kind}
+                  style={`${placementStyle(m.main) ?? ''};--fx-mask: url('${url(m.fxMask)}')`}
+                />
+              )}
             </div>
           )}
         </div>
@@ -256,6 +265,13 @@ const thumbLabel = (m: Media, i: number) =>
   .gallery__frame :global(img) {
     position: absolute;
     max-width: none;
+  }
+  /* Effect canvas: same placement box as the image, visible only on the mask. */
+  .gallery__fx {
+    pointer-events: none;
+    mix-blend-mode: screen;
+    -webkit-mask: var(--fx-mask) center / 100% 100% no-repeat;
+    mask: var(--fx-mask) center / 100% 100% no-repeat;
   }
   .gallery__frame :global(.gallery__img--cover) {
     inset: 0;
